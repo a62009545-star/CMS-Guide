@@ -157,6 +157,14 @@ After each content change the API emits `content:changed` over Socket.io (authen
 - Helmet sets a strict Content Security Policy; video embeds are limited to YouTube, Vimeo and SharePoint.
 - Changing a user's role or password signs them out everywhere (token version check).
 
+## Guide mascot
+
+"Relay", a robot from [page-mascot](https://github.com/nilbuild/page-mascot) (MIT), sits in the bottom-left corner of every reader page. It greets readers the first time they reach each kind of page and offers a short tour that highlights the parts of that page. It also follows the cursor, looks at whatever it is pointing out, and reacts when you bookmark a page or mark a walkthrough as read.
+
+- **Reader features only.** The tours live in `client/src/components/guide/tours.ts` and cover navigation, reading, search, bookmarks, "mark as read" and What's new. The guide is not shown under `/admin`, and any element marked `data-staff-only` (edit and publish controls) is never highlighted, so editing and admin features are not guided for any role. A step can be limited to roles with `roles: ['viewer']`.
+- **Readers stay in control.** Click the robot to open or close it, use **End tour** or Esc at any time, or turn it off with **Hide Relay** (it comes back from the account menu). Which pages a reader has seen is remembered per user in the browser.
+- **Another character.** Replace `client/public/mascot/robot-directions.webp` and `robot-reactions.webp` with another pair of sheets from page-mascot.
+
 ## Branding
 
 - Colours are CSS variables in `client/src/styles/index.css`. The primary red is set to `#E40000`, the commonly published Airtel red. **Confirm it against the official brand guidelines** and change `--brand` (and `--brand-strong` for hover) in one place.

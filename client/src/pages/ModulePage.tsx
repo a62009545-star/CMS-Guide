@@ -151,7 +151,7 @@ export function ModulePage() {
           )}
         </div>
 
-        <nav aria-label="Lifecycle" className="mt-12 grid gap-3 sm:grid-cols-2">
+        <nav aria-label="Lifecycle" data-guide="stage-nav" className="mt-12 grid gap-3 sm:grid-cols-2">
           {m.prev ? (
             <Link to={`/modules/${m.prev.slug}`} className="card flex items-center gap-3 p-4 hover:border-brand/40">
               <ArrowLeft className="h-5 w-5 shrink-0 text-ink-muted" />

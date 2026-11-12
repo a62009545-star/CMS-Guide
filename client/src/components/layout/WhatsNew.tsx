@@ -38,6 +38,7 @@ export function WhatsNew() {
       className="w-[min(380px,calc(100vw-24px))]"
       trigger={({ open, toggle }) => (
         <button
+          data-guide="whats-new"
           onClick={toggle}
           aria-expanded={open}
           aria-label={unread ? `What's new, ${unread} unread` : "What's new"}

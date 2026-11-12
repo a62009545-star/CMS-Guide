@@ -1,6 +1,7 @@
 import { Menu, Search, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { Guide } from '@/components/guide/Guide';
 import { cn } from '@/lib/utils';
 import { CommandPalette } from './CommandPalette';
 import { Logo } from './Logo';
@@ -55,13 +56,14 @@ export function AppShell({ hideSidebar = false }: { hideSidebar?: boolean }) {
       <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/85">
         <div className="flex h-16 items-center gap-3 px-3 sm:px-5">
           {!hideSidebar && (
-            <button onClick={() => setDrawer(true)} className="rounded-lg p-2 text-ink-muted hover:bg-surface-sunken lg:hidden" aria-label="Open module menu">
+            <button data-guide="menu" onClick={() => setDrawer(true)} className="rounded-lg p-2 text-ink-muted hover:bg-surface-sunken lg:hidden" aria-label="Open module menu">
               <Menu className="h-5 w-5" />
             </button>
           )}
           <Logo />
           <div className="flex flex-1 justify-center px-2">
             <button
+              data-guide="search"
               onClick={() => setPaletteOpen(true)}
               className="flex h-10 w-full max-w-md items-center gap-3 rounded-lg border border-line bg-surface-sunken px-3 text-sm text-ink-muted transition-colors hover:border-ink-subtle"
               aria-label="Search the guide"
@@ -81,6 +83,7 @@ export function AppShell({ hideSidebar = false }: { hideSidebar?: boolean }) {
       <div className="flex">
         {!hideSidebar && (
           <aside
+            data-guide="sidebar"
             className={cn(
               'sticky top-16 hidden h-[calc(100vh-4rem)] shrink-0 border-r border-line bg-surface transition-[width] duration-200 lg:block',
               collapsed ? 'w-[68px]' : 'w-[272px]',
@@ -108,6 +111,7 @@ export function AppShell({ hideSidebar = false }: { hideSidebar?: boolean }) {
       </div>
 
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      <Guide />
     </div>
   );
 }

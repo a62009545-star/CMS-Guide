@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 export function LifecycleRoute({ modules, animate = true }: { modules: ModuleListItem[]; animate?: boolean }) {
   const n = modules.length;
   return (
-    <nav aria-label="CMS lifecycle">
+    <nav aria-label="CMS lifecycle" data-guide="lifecycle">
       {/* Horizontal (lg+) */}
       <ol className="relative hidden lg:grid" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
         <span aria-hidden className="absolute top-[19px] h-0.5 bg-line" style={{ left: `${50 / n}%`, right: `${50 / n}%` }} />

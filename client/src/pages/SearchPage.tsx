@@ -32,9 +32,9 @@ export function SearchPage() {
       <div className="mt-5 flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" aria-hidden />
-          <Input value={q} onChange={(e) => set('q', e.target.value)} placeholder="Search modules, steps, guidelines, FAQs" className="h-11 pl-9 text-base" aria-label="Search" autoFocus />
+          <Input value={q} onChange={(e) => set('q', e.target.value)} placeholder="Search modules, steps, guidelines, FAQs" className="h-11 pl-9 text-base" aria-label="Search" autoFocus data-guide="search-input" />
         </div>
-        <Select value={moduleId} onChange={(e) => set('module', e.target.value)} className="h-11 sm:w-60" aria-label="Filter by module">
+        <Select value={moduleId} onChange={(e) => set('module', e.target.value)} className="h-11 sm:w-60" aria-label="Filter by module" data-guide="module-filter">
           <option value="">All modules</option>
           {modules.map((m) => (
             <option key={m._id} value={m._id}>
@@ -45,7 +45,7 @@ export function SearchPage() {
       </div>
 
       {q.trim().length >= 2 && (
-        <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Filter by result type">
+        <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Filter by result type" data-guide="type-filters">
           <button onClick={() => set('type', '')} className={cn('rounded-full border px-3 py-1 text-sm', !type ? 'border-ink bg-ink text-canvas' : 'border-line bg-surface hover:border-ink-subtle')} aria-pressed={!type}>
             All <span className="tabular opacity-70">{hits.length}</span>
           </button>

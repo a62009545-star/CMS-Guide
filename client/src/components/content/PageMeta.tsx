@@ -6,6 +6,7 @@ import { errorMessage, patch, post } from '@/api/client';
 import { qk } from '@/api/queries';
 import { StatusBadge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { useGuide } from '@/components/guide/Guide';
 import { useAuth } from '@/lib/auth';
 import { cn, formatDateTime } from '@/lib/utils';
 
@@ -20,6 +21,7 @@ export function LastUpdated({ name, at }: { name: string | null; at: string }) {
 export function BookmarkButton({ entityType, entityId }: { entityType: 'module' | 'subtask'; entityId: string }) {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { cue } = useGuide();
   const on = !!user?.bookmarks?.some((b) => b.entityType === entityType && String(b.entityId) === entityId);
   const m = useMutation({
     mutationFn: () => post<{ bookmarked: boolean }>('/auth/me/bookmarks', { entityType, entityId }),
@@ -27,12 +29,13 @@ export function BookmarkButton({ entityType, entityId }: { entityType: 'module' 
       qc.invalidateQueries({ queryKey: qk.me });
       qc.invalidateQueries({ queryKey: qk.bookmarks });
       toast.success(r.bookmarked ? 'Bookmarked' : 'Bookmark removed');
+      cue(r.bookmarked ? 'heart' : 'wink');
     },
     onError: (e) => toast.error(errorMessage(e)),
   });
   const I = on ? BookmarkCheck : Bookmark;
   return (
-    <Button size="sm" variant="secondary" onClick={() => m.mutate()} loading={m.isPending} aria-pressed={on}>
+    <Button data-guide="bookmark" size="sm" variant="secondary" onClick={() => m.mutate()} loading={m.isPending} aria-pressed={on}>
       <I className={cn('h-4 w-4', on && 'text-brand-fg')} aria-hidden />
       {on ? 'Bookmarked' : 'Bookmark'}
     </Button>
@@ -66,7 +69,7 @@ export function StaffBar({ entityType, id, status, hasPendingDraft, pendingDraft
   if (!isStaff) return null;
   const previewing = params.get('preview') === '1';
   return (
-    <div className="mb-6 flex flex-wrap items-center gap-2 rounded-card border border-dashed border-line bg-surface px-3 py-2">
+    <div data-staff-only className="mb-6 flex flex-wrap items-center gap-2 rounded-card border border-dashed border-line bg-surface px-3 py-2">
       <StatusBadge status={status} pending={hasPendingDraft} />
       {isPreview && <span className="text-xs text-ink-muted">Previewing changes from {pendingDraftByName ?? 'an editor'}</span>}
       <div className="ml-auto flex flex-wrap gap-2">
@@ -100,7 +103,7 @@ export function SectionEdit({ to, label }: { to: string; label: string }) {
   const { isStaff } = useAuth();
   if (!isStaff) return null;
   return (
-    <Link to={to} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-ink-muted hover:bg-surface-sunken hover:text-ink" aria-label={label}>
+    <Link data-staff-only to={to} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-ink-muted hover:bg-surface-sunken hover:text-ink" aria-label={label}>
       <Pencil className="h-3.5 w-3.5" aria-hidden />
       Edit
     </Link>

@@ -1,6 +1,7 @@
 import { lazy, Suspense, type ReactNode } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
+import { GuideProvider } from '@/components/guide/Guide';
 import { AppShell } from '@/components/layout/AppShell';
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
 import { PageSkeleton } from '@/components/ui/Skeleton';
@@ -38,6 +39,7 @@ function RequireStaff({ children }: { children: ReactNode }) {
 export function App() {
   return (
     <AuthProvider>
+      <GuideProvider>
       <ConfirmProvider>
         <RealtimeBridge />
         <Routes>
@@ -69,6 +71,7 @@ export function App() {
         </Routes>
         <Toaster position="bottom-right" closeButton toastOptions={{ className: 'font-sans' }} />
       </ConfirmProvider>
+      </GuideProvider>
     </AuthProvider>
   );
 }

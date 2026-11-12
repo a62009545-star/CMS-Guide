@@ -12,7 +12,7 @@ export function Callout({ type, text }: { type: CalloutType; text: string }) {
   const s = styles[type];
   const I = s.icon;
   return (
-    <div className={cn('flex gap-3 rounded-lg border-l-[3px] px-4 py-3 text-[0.9375rem]', s.box)} role="note">
+    <div className={cn('flex gap-3 rounded-lg border-l-[3px] px-4 py-3 text-[0.9375rem]', s.box)} role="note" data-guide="callout">
       <I className={cn('mt-0.5 h-[18px] w-[18px] shrink-0', s.icon_)} aria-hidden />
       <p>
         <span className="font-semibold">{s.label}. </span>

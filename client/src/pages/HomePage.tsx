@@ -47,7 +47,7 @@ export function HomePage() {
       </section>
 
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-8 lg:grid-cols-[1fr_340px]">
-        <section className="card" aria-labelledby="recent-h">
+        <section className="card" aria-labelledby="recent-h" data-guide="recent">
           <div className="flex items-center justify-between border-b border-line px-5 py-4">
             <h2 id="recent-h" className="font-semibold">Recently updated</h2>
           </div>
@@ -108,7 +108,7 @@ export function HomePage() {
               </li>
             </ul>
           </section>
-          <section className="card p-5" aria-labelledby="bm-h">
+          <section className="card p-5" aria-labelledby="bm-h" data-guide="bookmarked">
             <h2 id="bm-h" className="font-semibold">Bookmarked</h2>
             {bookmarks.data?.items.length ? (
               <ul className="mt-3 space-y-1">

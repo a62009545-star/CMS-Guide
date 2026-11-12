@@ -15,6 +15,7 @@ import { ErrorState } from '@/components/ui/EmptyState';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useHashScroll } from '@/hooks/useHashScroll';
+import { useGuide } from '@/components/guide/Guide';
 import { useAuth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
 import { NotFoundPage } from './NotFoundPage';
@@ -89,6 +90,7 @@ export function SubTaskPage() {
   const { data: s, isLoading, error, refetch } = useSubTask(moduleSlug, subSlug, preview);
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { cue } = useGuide();
   const navigate = useNavigate();
   const [stepsOpen, setStepsOpen] = useState(false);
   useDocumentTitle(s?.title);
@@ -102,6 +104,7 @@ export function SubTaskPage() {
     onSuccess: (r) => {
       qc.invalidateQueries({ queryKey: qk.me });
       toast.success(r.read ? 'Marked as read' : 'Marked as unread');
+      cue(r.read ? 'delighted' : 'wink');
     },
     onError: (e) => toast.error(errorMessage(e)),
   });
@@ -125,7 +128,7 @@ export function SubTaskPage() {
 
   return (
     <div ref={topRef} className="mx-auto flex max-w-6xl gap-10 px-4 py-8 sm:px-8">
-      <aside className="hidden w-60 shrink-0 lg:block">
+      <aside data-guide="step-rail" className="hidden w-60 shrink-0 lg:block">
         <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pb-4">
           <Link to={`/modules/${s.module.slug}`} className="mb-5 inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink">
             <ArrowLeft className="h-4 w-4" /> {s.module.title}
@@ -160,14 +163,14 @@ export function SubTaskPage() {
         <p className="mt-3 max-w-prose text-lg text-ink-muted">{s.summary}</p>
         <div className="mt-5 flex flex-wrap gap-2">
           <BookmarkButton entityType="subtask" entityId={s._id} />
-          <Button size="sm" variant={isRead ? 'secondary' : 'secondary'} onClick={() => markRead.mutate()} loading={markRead.isPending} aria-pressed={isRead}>
+          <Button data-guide="mark-read" size="sm" variant="secondary" onClick={() => markRead.mutate()} loading={markRead.isPending} aria-pressed={isRead}>
             {isRead ? <CheckCircle2 className="h-4 w-4 text-success" /> : <Circle className="h-4 w-4" />}
             {isRead ? 'Read' : 'Mark as read'}
           </Button>
         </div>
 
         {/* Mobile step list */}
-        <div className="card mt-6 lg:hidden">
+        <div data-guide="step-list-mobile" className="card mt-6 lg:hidden">
           <button onClick={() => setStepsOpen((o) => !o)} aria-expanded={stepsOpen} className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium">
             <span className="tabular">
               Step {active + 1} of {n}: {s.steps[active]?.title}
@@ -182,7 +185,7 @@ export function SubTaskPage() {
         </div>
 
         {s.prerequisites.length > 0 && (
-          <section className="mt-8 rounded-card border border-line bg-surface p-5" aria-labelledby="prereq-h">
+          <section data-guide="prereq" className="mt-8 rounded-card border border-line bg-surface p-5" aria-labelledby="prereq-h">
             <div className="flex items-center justify-between">
               <h2 id="prereq-h" className="font-semibold">Before you start</h2>
               <SectionEdit to={`${editBase}?section=details`} label="Edit prerequisites" />
@@ -276,7 +279,7 @@ export function SubTaskPage() {
         {/* Previous / next step bar */}
         {n > 1 && (
           <div className="sticky bottom-4 z-20 mt-8 flex justify-center">
-            <div className="flex items-center gap-1 rounded-full border border-line bg-surface/95 p-1 shadow-raised backdrop-blur">
+            <div data-guide="step-bar" className="flex items-center gap-1 rounded-full border border-line bg-surface/95 p-1 shadow-raised backdrop-blur">
               <Button size="sm" variant="ghost" className="rounded-full" disabled={active === 0} onClick={() => jump(active - 1)}>
                 <ArrowLeft className="h-4 w-4" /> Previous step
               </Button>
