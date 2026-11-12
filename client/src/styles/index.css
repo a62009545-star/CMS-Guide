@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design tokens. Primary red is the Airtel brand red as commonly published (#E40000).
+ * Confirm against the official brand guidelines and change --brand here only.
+ */
+@layer base {
+  :root {
+    --brand: 228 0 0;          /* #E40000 — fills, active states, progress lines */
+    --brand-strong: 184 0 0;   /* #B80000 — hover/pressed fill */
+    --brand-soft: 253 236 236; /* #FDECEC — quiet tint behind active items */
+    --brand-fg: 204 0 0;       /* #CC0000 — red text on light surfaces (AA) */
+    --ink: 26 26 26;           /* #1A1A1A */
+    --ink-muted: 88 92 99;     /* #585C63 */
+    --ink-subtle: 128 132 140;
+    --canvas: 255 255 255;
+    --surface: 255 255 255;
+    --surface-sunken: 245 245 247; /* #F5F5F7 */
+    --line: 229 229 229;       /* #E5E5E5 */
+    --success: 30 142 62;      /* #1E8E3E */
+    --warning: 249 168 37;     /* #F9A825 */
+    --info: 21 101 192;        /* #1565C0 */
+    color-scheme: light;
+  }
+  .dark {
+    --brand: 228 0 0;
+    --brand-strong: 255 51 51;
+    --brand-soft: 64 20 20;
+    --brand-fg: 255 99 99;
+    --ink: 242 242 243;
+    --ink-muted: 176 178 184;
+    --ink-subtle: 128 130 138;
+    --canvas: 26 26 26;
+    --surface: 34 34 36;
+    --surface-sunken: 26 26 26;
+    --line: 54 54 58;
+    --success: 74 190 108;
+    --warning: 249 190 70;
+    --info: 100 160 240;
+    color-scheme: dark;
+  }
+
+  html { -webkit-text-size-adjust: 100%; scroll-padding-top: 88px; }
+  body { @apply bg-surface-sunken text-ink antialiased; font-feature-settings: 'cv11', 'ss01'; }
+  :focus-visible { @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-canvas; }
+  ::selection { background: rgb(var(--brand) / 0.18); }
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  }
+}
+
+@layer components {
+  .card { @apply rounded-card border border-line bg-surface shadow-card; }
+  .input {
+    @apply w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-subtle
+      focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:opacity-60;
+  }
+  .label { @apply mb-1.5 block text-sm font-medium text-ink; }
+  .skeleton { @apply relative overflow-hidden rounded-md bg-line/60; }
+  .skeleton::after {
+    content: ''; @apply absolute inset-0 -translate-x-full;
+    background: linear-gradient(90deg, transparent, rgb(var(--surface) / 0.6), transparent);
+    animation: shimmer 1.4s infinite;
+  }
+}
+
+/* ───── Rendered rich text (module E2E content and walkthrough steps) ───── */
+.rich { @apply max-w-prose text-[0.9875rem] leading-7 text-ink; }
+.rich > * + * { @apply mt-4; }
+.rich h2 { @apply mt-8 text-xl font-semibold; }
+.rich h3 { @apply mt-7 text-lg font-semibold; }
+.rich h4 { @apply mt-6 font-semibold; }
+.rich ul { @apply list-disc space-y-1.5 pl-5 marker:text-ink-subtle; }
+.rich ol { @apply list-decimal space-y-1.5 pl-5 marker:text-ink-muted; }
+.rich a { @apply font-medium text-brand-fg underline decoration-brand/30 underline-offset-2 hover:decoration-brand; }
+.rich code { @apply rounded bg-surface-sunken px-1.5 py-0.5 text-[0.875em] font-medium; }
+.rich pre { @apply overflow-x-auto rounded-lg bg-ink p-4 text-sm text-canvas; }
+.rich pre code { @apply bg-transparent p-0 text-inherit; }
+.rich blockquote { @apply border-l-2 border-line pl-4 text-ink-muted; }
+.rich img { @apply rounded-lg border border-line; }
+.rich hr { @apply border-line; }
+.rich table { @apply block w-full overflow-x-auto border-collapse text-sm sm:table; }
+.rich th, .rich td { @apply border-b border-line px-3 py-2.5 text-left align-top; }
+.rich th { @apply w-40 whitespace-nowrap font-medium text-ink-muted; }
+.rich thead th { @apply w-auto bg-surface-sunken text-ink; }
+.rich [data-callout] { @apply rounded-lg border-l-[3px] px-4 py-3 text-[0.9375rem]; }
+.rich [data-callout] > * + * { @apply mt-2; }
+.rich [data-callout='info'], .rich [data-callout='note'] { @apply border-info bg-info/[0.07]; }
+.rich [data-callout='tip'] { @apply border-success bg-success/[0.07]; }
+.rich [data-callout='warning'] { @apply border-warning bg-warning/[0.12]; }
+.rich [data-callout='error'] { @apply border-brand bg-brand/[0.06]; }
+
+/* Editor surface */
+.ProseMirror { @apply min-h-[160px] px-4 py-3 outline-none; }
+.ProseMirror p.is-editor-empty:first-child::before { content: attr(data-placeholder); @apply pointer-events-none float-left h-0 text-ink-subtle; }
+.ProseMirror .selectedCell { @apply bg-brand/10; }
+.ProseMirror table { @apply table; }
+
+/* Search highlight */
+mark.hl { @apply rounded-sm bg-warning/40 px-0.5 text-inherit; }
+
+/* Deep-link target flash */
+.target-flash { animation: target-flash 1.6s ease-out; }
+@keyframes target-flash { 0% { box-shadow: 0 0 0 3px rgb(var(--brand) / 0.5); } 100% { box-shadow: 0 0 0 3px rgb(var(--brand) / 0); } }
