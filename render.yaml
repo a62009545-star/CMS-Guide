@@ -5,14 +5,13 @@ services:
     name: cms-process-guide
     runtime: docker
     dockerfilePath: ./Dockerfile
-    plan: starter # always on (the free plan sleeps after 15 minutes idle)
+    # Free plan: sleeps after 15 minutes without visitors, so keep it awake with an uptime
+    # monitor pinging /api/health every 5 minutes. Switch to "starter" for always-on plus a disk.
+    plan: free
     healthCheckPath: /api/health
     autoDeploy: true
-    # Uploaded images and videos live here and survive deploys and restarts.
-    disk:
-      name: uploads
-      mountPath: /app/uploads
-      sizeGB: 5
+    # The free plan has no persistent disk: uploads are wiped on each deploy or restart.
+    # On "starter", add a disk (name: uploads, mountPath: /app/uploads) or configure S3.
     envVars:
       - key: NODE_ENV
         value: production

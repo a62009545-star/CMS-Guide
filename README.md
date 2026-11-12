@@ -97,7 +97,12 @@ Open http://localhost:4000. Uploaded files are kept in the `uploads` volume unle
 3. **Values.** Paste `MONGODB_URI` and choose `SEED_ADMIN_PASSWORD`. `JWT_SECRET` is generated for you.
 4. **Deploy.** The first start seeds the admin account and sample content (only when the database has no users). Open the `onrender.com` URL and sign in.
 
-The blueprint uses the **Starter** plan (always on, about $7/month plus about $1.25/month for the 5 GB disk). Uploads are stored on the persistent disk mounted at `/app/uploads`, so they survive deploys. To move media to S3 later, add the `AWS_*` variables under *Environment*.
+The blueprint uses Render's **free** plan:
+
+- It sleeps after 15 minutes without visitors. Keep it awake with a free uptime monitor (for example UptimeRobot) that requests `https://<your-app>.onrender.com/api/health` every 5 minutes.
+- It has no persistent disk, so uploaded files are lost on every deploy or restart. Seed content uses images shipped with the app and is unaffected.
+
+For production, switch to the **Starter** plan (always on) and either attach a disk at `/app/uploads` or add the `AWS_*` variables for S3 under *Environment*.
 
 ## Deploying to production
 
