@@ -94,10 +94,10 @@ Open http://localhost:4000. Uploaded files are kept in the `uploads` volume unle
 
 1. **Database.** In [MongoDB Atlas](https://www.mongodb.com/atlas), create a free cluster, a database user, and under *Network Access* allow `0.0.0.0/0` (Render's free plan has no fixed outbound IP). Copy the connection string and add the database name, e.g. `mongodb+srv://user:pass@cluster0.xxxx.mongodb.net/cms-guide?retryWrites=true&w=majority`.
 2. **Blueprint.** In [Render](https://dashboard.render.com), choose **New › Blueprint**, connect this GitHub repository and the branch to deploy. Render reads `render.yaml`.
-3. **Values.** Paste `MONGODB_URI`, choose `SEED_ADMIN_PASSWORD`, and leave the AWS fields empty unless you have a bucket. `JWT_SECRET` is generated for you.
+3. **Values.** Paste `MONGODB_URI` and choose `SEED_ADMIN_PASSWORD`. `JWT_SECRET` is generated for you.
 4. **Deploy.** The first start seeds the admin account and sample content (only when the database has no users). Open the `onrender.com` URL and sign in.
 
-Free instances sleep after 15 minutes without traffic and take about a minute to wake. Their disk is wiped on every deploy, so configure S3 before relying on uploads.
+The blueprint uses the **Starter** plan (always on, about $7/month plus about $1.25/month for the 5 GB disk). Uploads are stored on the persistent disk mounted at `/app/uploads`, so they survive deploys. To move media to S3 later, add the `AWS_*` variables under *Environment*.
 
 ## Deploying to production
 

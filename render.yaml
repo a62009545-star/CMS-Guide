@@ -1,34 +1,30 @@
 # Render Blueprint: https://render.com/docs/blueprint-spec
-# New > Blueprint in the Render dashboard, pick this repo, then fill in the values marked sync: false.
+# Dashboard > New > Blueprint > pick this repo. Render asks for the two values marked sync: false.
 services:
   - type: web
     name: cms-process-guide
     runtime: docker
     dockerfilePath: ./Dockerfile
-    plan: free # use "starter" or above for always-on (free instances sleep after 15 min idle)
+    plan: starter # always on (the free plan sleeps after 15 minutes idle)
     healthCheckPath: /api/health
     autoDeploy: true
+    # Uploaded images and videos live here and survive deploys and restarts.
+    disk:
+      name: uploads
+      mountPath: /app/uploads
+      sizeGB: 5
     envVars:
       - key: NODE_ENV
         value: production
       - key: MONGODB_URI
         sync: false # MongoDB Atlas connection string
+      - key: SEED_ADMIN_PASSWORD
+        sync: false # password for the first admin (admin@example.com)
       - key: JWT_SECRET
         generateValue: true
       - key: SEED_ON_START
         value: "true" # seeds only when the database has no users
       - key: SEED_ADMIN_EMAIL
         value: admin@example.com
-      - key: SEED_ADMIN_PASSWORD
-        sync: false # choose the first admin's password
-      # Media storage. Without a bucket, uploads go to the container disk and are lost on each deploy.
-      - key: AWS_REGION
-        value: ap-south-1
-      - key: AWS_S3_BUCKET
-        sync: false
-      - key: AWS_ACCESS_KEY_ID
-        sync: false
-      - key: AWS_SECRET_ACCESS_KEY
-        sync: false
-      - key: CLOUDFRONT_URL
-        sync: false
+      # To move media to S3 later, add AWS_S3_BUCKET, AWS_REGION, AWS_ACCESS_KEY_ID and
+      # AWS_SECRET_ACCESS_KEY (and optionally CLOUDFRONT_URL) under Environment in the dashboard.

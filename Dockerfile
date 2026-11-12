@@ -16,6 +16,7 @@ RUN npm run build
 # ── Runtime ─────────────────────────────────────────────
 FROM node:20-alpine AS runtime
 ENV NODE_ENV=production
+RUN apk add --no-cache su-exec
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY shared/package.json shared/
@@ -28,8 +29,11 @@ ENV CLIENT_DIST=/app/client/dist \
     LOCAL_UPLOAD_DIR=/app/uploads \
     PORT=4000
 RUN mkdir -p /app/uploads && chown -R node:node /app/uploads
-USER node
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 WORKDIR /app/server
 EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s CMD wget -qO- http://localhost:4000/api/health || exit 1
+# Starts as root only to fix upload-dir ownership, then runs the app as "node".
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "dist/index.js"]
