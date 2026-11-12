@@ -11,7 +11,8 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((v) => (v === undefined ? undefined : v === 'true')),
-  CLIENT_ORIGIN: z.string().default('http://localhost:5173'),
+  // Falls back to the public URL Render provides, so a Render deploy needs no extra setting.
+  CLIENT_ORIGIN: z.string().default(process.env.RENDER_EXTERNAL_URL ?? 'http://localhost:5173'),
   /** Serve the built client from this directory (production single-container deploy). */
   CLIENT_DIST: z.string().optional(),
 
@@ -27,6 +28,11 @@ const envSchema = z.object({
   // Search. Set to the Atlas Search index name to use $search; otherwise a text index is used.
   ATLAS_SEARCH_INDEX: z.string().optional().default(''),
 
+  /** Seed the admin account and sample content on startup when the database has no users. */
+  SEED_ON_START: z
+    .string()
+    .optional()
+    .transform((v) => v === 'true'),
   SEED_ADMIN_EMAIL: z.string().default('admin@example.com'),
   SEED_ADMIN_PASSWORD: z.string().default('ChangeMe@123'),
 });
