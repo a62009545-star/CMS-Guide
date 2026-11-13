@@ -2,10 +2,18 @@
 
 type Callout = { type: 'tip' | 'warning' | 'error'; text: string } | null;
 
+/** A real screenshot shipped with the client under /public (e.g. /sop/roster/roster-weekly.webp). */
+export interface Shot {
+  src: string;
+  alt: string;
+  caption?: string;
+}
+
 export interface SeedStep {
   title: string;
   html: string;
   images?: number; // how many placeholder screenshots to attach
+  shots?: Shot[];
   callout?: Callout;
 }
 
@@ -22,6 +30,8 @@ export interface SeedSubTask {
 export interface SeedModule {
   title: string;
   slug: string;
+  section?: 'lifecycle' | 'configuration';
+  hero?: Shot;
   icon: string;
   summary: string;
   e2e: string;

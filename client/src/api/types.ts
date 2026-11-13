@@ -1,4 +1,4 @@
-import type { AuditAction, CalloutType, EntityType, Faq, FlowStep, Guideline, MediaType, Role, Status } from '@cms/shared';
+import type { AuditAction, CalloutType, EntityType, Faq, FlowStep, Guideline, MediaType, Role, Section, Status } from '@cms/shared';
 
 export interface User {
   _id: string;
@@ -32,6 +32,7 @@ export interface ModuleListItem {
   _id: string;
   title: string;
   slug: string;
+  section: Section;
   icon: string;
   summary: string;
   order: number;
@@ -66,6 +67,7 @@ export interface ModuleDetail {
   _id: string;
   title: string;
   slug: string;
+  section: Section;
   icon: string;
   summary: string;
   order: number;
@@ -104,7 +106,7 @@ export interface SubTaskDetail {
   prerequisites: string[];
   expectedOutcome: string;
   steps: WalkthroughStep[];
-  module: { _id: string; title: string; slug: string; order: number; icon: string; status: Status };
+  module: { _id: string; title: string; slug: string; order: number; icon: string; status: Status; section?: Section };
   related: { _id: string; title: string; slug: string; summary: string; moduleSlug?: string; moduleTitle?: string }[];
   prev: NavLink | null;
   next: NavLink | null;
@@ -174,6 +176,7 @@ export interface ModuleEditPayload {
   snapshot: {
     title: string;
     slug: string;
+    section: Section;
     icon: string;
     summary: string;
     e2eContent: RichText;

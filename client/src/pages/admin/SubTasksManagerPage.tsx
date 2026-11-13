@@ -102,7 +102,7 @@ export function SubTasksManagerPage() {
           <option value="">All modules</option>
           {modules.data?.map((m) => (
             <option key={m._id} value={m._id}>
-              {m.order}. {m.title}
+              {m.section === 'configuration' ? `Configuration: ${m.title}` : `${m.order}. ${m.title}`}
             </option>
           ))}
         </Select>

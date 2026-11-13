@@ -1,6 +1,9 @@
 import {
   Activity,
   Box,
+  CalendarDays,
+  Database,
+  LogIn,
   ClipboardCheck,
   FileText,
   Flag,
@@ -27,6 +30,9 @@ export const MODULE_ICONS: Record<string, LucideIcon> = {
   wrench: Wrench,
   network: Network,
   server: Server,
+  database: Database,
+  'calendar-days': CalendarDays,
+  'log-in': LogIn,
   box: Box,
 };
 

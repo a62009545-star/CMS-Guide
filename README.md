@@ -157,6 +157,17 @@ After each content change the API emits `content:changed` over Socket.io (authen
 - Helmet sets a strict Content Security Policy; video embeds are limited to YouTube, Vimeo and SharePoint.
 - Changing a user's role or password signs them out everywhere (token version check).
 
+## Content sections
+
+Modules belong to one of two sections (the `section` field):
+
+- **CMS lifecycle**: the seven numbered stages, drawn as the route on the home page and in the sidebar.
+- **Configuration & management**: how to use CHM itself, written from the team's SOPs: Getting started (sign in), Team Management, Activity Database Setup & View, Roster and Scheduler: CRQ Workflow. Their screenshots are in `client/public/sop/`.
+
+Admins choose the section in the module editor and reorder modules within each section under **Admin › Modules**.
+
+Content added after the first deploy is applied by named, one-time migrations in `server/src/seed/run.ts` (recorded in the `migrations` collection), so an existing database gets the new section on its next start without re-seeding. A module an admin deletes is not added back.
+
 ## Guide mascot
 
 "Relay", a robot from [page-mascot](https://github.com/nilbuild/page-mascot) (MIT), sits in the bottom-left corner of every reader page. It greets readers the first time they reach each kind of page and offers a short tour that highlights the parts of that page. It also follows the cursor, looks at whatever it is pointing out, and reacts when you bookmark a page or mark a walkthrough as read.

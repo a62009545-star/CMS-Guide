@@ -4,7 +4,7 @@ import { createApp } from './app.js';
 import { connectDb } from './config/db.js';
 import { env } from './config/env.js';
 import { User } from './models/index.js';
-import { runSeed } from './seed/run.js';
+import { runMigrations, runSeed } from './seed/run.js';
 import { initRealtime } from './services/realtime.js';
 
 async function main() {
@@ -12,6 +12,8 @@ async function main() {
   if (env.SEED_ON_START && (await User.estimatedDocumentCount()) === 0) {
     console.log('Empty database: seeding admin account and sample content');
     await runSeed();
+  } else {
+    await runMigrations(); // adds content introduced after the first deploy, once
   }
   const app = createApp();
   const server = http.createServer(app);

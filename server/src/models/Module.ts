@@ -1,5 +1,5 @@
 import { Schema, model, type InferSchemaType, type HydratedDocument } from 'mongoose';
-import { GUIDELINE_TYPES, STATUSES } from '@cms/shared';
+import { GUIDELINE_TYPES, SECTIONS, STATUSES } from '@cms/shared';
 
 export const richTextDef = {
   html: { type: String, default: '' },
@@ -10,6 +10,7 @@ const moduleSchema = new Schema(
   {
     title: { type: String, required: true, trim: true },
     slug: { type: String, required: true, unique: true, lowercase: true },
+    section: { type: String, enum: SECTIONS, default: 'lifecycle', index: true },
     icon: { type: String, default: 'box' },
     summary: { type: String, default: '' },
     order: { type: Number, default: 0, index: true },

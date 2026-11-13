@@ -27,7 +27,7 @@ modulesRouter.get(
     const filter = staff ? {} : { status: 'published' };
     const mods = await Module.find(filter)
       .sort({ order: 1 })
-      .select('title slug icon summary order status updatedAt updatedBy pendingDraftAt flowSteps.title')
+      .select('title slug section icon summary order status updatedAt updatedBy pendingDraftAt flowSteps.title')
       .lean();
     const counts = await SubTask.aggregate<{ _id: unknown; n: number }>([
       { $match: staff ? {} : { status: 'published' } },
@@ -98,7 +98,7 @@ modulesRouter.post(
   validateBody(moduleInputSchema),
   ah(async (req, res) => {
     const snap = normalizeModule(req.body as ModuleInput);
-    const last = await Module.findOne().sort({ order: -1 }).select('order').lean();
+    const last = await Module.findOne({ section: snap.section }).sort({ order: -1 }).select('order').lean();
     const doc = await Module.create({ ...moduleDocFields(snap), order: (last?.order ?? 0) + 1, status: 'draft', updatedBy: req.user!.id });
     await saveVersion({ entityType: 'module', entityId: doc._id, snapshot: snap, user: req.user!, changeNote: (req.body as ModuleInput).changeNote || 'Created' });
     await record({ user: req.user!, action: 'create', entityType: 'module', entityId: doc._id, entityTitle: doc.title, slug: doc.slug, path: pathFor(doc.slug) });

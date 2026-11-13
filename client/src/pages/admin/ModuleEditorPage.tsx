@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ImagePlus, Plus } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { GUIDELINE_TYPES, moduleInputSchema } from '@cms/shared';
+import { GUIDELINE_TYPES, SECTIONS, SECTION_LABEL, moduleInputSchema, type Section } from '@cms/shared';
 import { errorMessage, get, patch, post, put } from '@/api/client';
 import type { Media, ModuleEditPayload } from '@/api/types';
 import { MediaView } from '@/components/content/Media';
@@ -25,7 +25,7 @@ type Form = Omit<Snap, 'flowSteps' | 'guidelines' | 'faqs'> & {
   faqs: (Snap['faqs'][number] & { id: string })[];
 };
 
-const empty: Snap = { title: '', slug: '', icon: 'box', summary: '', e2eContent: { html: '' }, flowSteps: [], heroMedia: null, guidelines: [], faqs: [] };
+const empty: Snap = { title: '', slug: '', section: 'lifecycle', icon: 'box', summary: '', e2eContent: { html: '' }, flowSteps: [], heroMedia: null, guidelines: [], faqs: [] };
 
 const toForm = (s: Snap): Form => ({
   ...s,
@@ -39,13 +39,14 @@ export function ModuleEditorPage() {
   const { id } = useParams();
   const isNew = !id;
   const navigate = useNavigate();
+  const [params] = useSearchParams();
   const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'module-edit', id],
     queryFn: () => get<ModuleEditPayload>(`/modules/id/${id}/edit`),
     enabled: !isNew,
   });
-  const [form, setForm] = useState<Form>(() => toForm(empty));
+  const [form, setForm] = useState<Form>(() => toForm({ ...empty, section: params.get('section') === 'configuration' ? 'configuration' : 'lifecycle' }));
   const [baseline, setBaseline] = useState('');
   const [hero, setHero] = useState<Media | null>(null);
   const [slugTouched, setSlugTouched] = useState(!isNew);
@@ -56,7 +57,7 @@ export function ModuleEditorPage() {
 
   useEffect(() => {
     if (!data) return;
-    const f = toForm(data.snapshot);
+    const f = toForm({ ...data.snapshot, section: data.snapshot.section ?? 'lifecycle' });
     setForm(f);
     setBaseline(JSON.stringify(toPayload(f)));
     setHero(data.heroMediaDoc);
@@ -134,6 +135,15 @@ export function ModuleEditorPage() {
                   set('slug', slugify(e.target.value));
                 }}
               />
+            </Field>
+            <Field label="Section" htmlFor="m-section" className="sm:col-span-2" hint="Lifecycle stages are numbered and drawn as the route on the home page. Configuration topics are listed separately.">
+              <Select id="m-section" value={form.section} onChange={(e) => set('section', e.target.value as Section)}>
+                {SECTIONS.map((s) => (
+                  <option key={s} value={s}>
+                    {SECTION_LABEL[s]}
+                  </option>
+                ))}
+              </Select>
             </Field>
             <Field label="Summary" htmlFor="m-summary" className="sm:col-span-2" error={err('summary')} hint="One or two sentences shown on cards and at the top of the page.">
               <Textarea id="m-summary" value={form.summary} onChange={(e) => set('summary', e.target.value)} rows={2} maxLength={400} />

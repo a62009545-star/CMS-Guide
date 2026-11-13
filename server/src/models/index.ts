@@ -4,3 +4,4 @@ export { SubTask, type SubTaskDoc } from './SubTask.js';
 export { Media } from './Media.js';
 export { Version } from './Version.js';
 export { AuditLog } from './AuditLog.js';
+export { Migration } from './Migration.js';

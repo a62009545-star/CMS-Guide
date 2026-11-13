@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { SECTION_LABEL } from '@cms/shared';
 import { ApiError } from '@/api/client';
 import { useModule } from '@/api/queries';
 import { FaqList, GuidelineList } from '@/components/content/Guidelines';
@@ -45,6 +46,8 @@ export function ModulePage() {
   if (error || !m) return <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8"><ErrorState message={(error as Error)?.message} onRetry={() => refetch()} /></div>;
 
   const editBase = `/admin/modules/${m._id}`;
+  const isLifecycle = (m.section ?? 'lifecycle') === 'lifecycle';
+  const unit = isLifecycle ? 'stage' : 'topic';
   const read = new Set((user?.readSubTasks ?? []).map(String));
   const toc = [
     { id: 'overview', label: 'How it works' },
@@ -70,7 +73,7 @@ export function ModulePage() {
         <header>
           <p className="flex items-center gap-2 text-sm text-ink-muted">
             <ModuleIcon name={m.icon} className="h-4 w-4" />
-            <span className="tabular">Stage {m.order}</span>
+            <span className="tabular">{isLifecycle ? `Stage ${m.order}` : SECTION_LABEL.configuration}</span>
           </p>
           <h1 className="mt-2 text-3xl font-bold">{m.title}</h1>
           <p className="mt-3 max-w-prose text-lg text-ink-muted">{m.summary}</p>
@@ -110,7 +113,7 @@ export function ModulePage() {
             edit={isStaff ? <SectionEdit to={`/admin/subtasks?module=${m._id}`} label="Manage walkthroughs" /> : undefined}
           >
             {m.subTasks.length === 0 ? (
-              <p className="text-sm text-ink-muted">No walkthroughs for this stage yet.</p>
+              <p className="text-sm text-ink-muted">No walkthroughs for this {unit} yet.</p>
             ) : (
               <ol className="grid gap-3 sm:grid-cols-2">
                 {m.subTasks.map((s, i) => (
@@ -121,7 +124,7 @@ export function ModulePage() {
                     >
                       <span className="flex items-center justify-between gap-3 text-xs text-ink-muted">
                         <span className="tabular">
-                          {m.order}.{i + 1}
+                          {isLifecycle ? `${m.order}.${i + 1}` : i + 1}
                         </span>
                         {read.has(s._id) && (
                           <span className="inline-flex items-center gap-1 text-success">
@@ -151,12 +154,12 @@ export function ModulePage() {
           )}
         </div>
 
-        <nav aria-label="Lifecycle" data-guide="stage-nav" className="mt-12 grid gap-3 sm:grid-cols-2">
+        <nav aria-label={isLifecycle ? 'Lifecycle' : SECTION_LABEL.configuration} data-guide="stage-nav" className="mt-12 grid gap-3 sm:grid-cols-2">
           {m.prev ? (
             <Link to={`/modules/${m.prev.slug}`} className="card flex items-center gap-3 p-4 hover:border-brand/40">
               <ArrowLeft className="h-5 w-5 shrink-0 text-ink-muted" />
               <span>
-                <span className="block text-xs text-ink-muted">Previous stage</span>
+                <span className="block text-xs text-ink-muted">Previous {unit}</span>
                 <span className="font-medium">{m.prev.title}</span>
               </span>
             </Link>
@@ -166,7 +169,7 @@ export function ModulePage() {
           {m.next && (
             <Link to={`/modules/${m.next.slug}`} className="card flex items-center justify-end gap-3 p-4 text-right hover:border-brand/40">
               <span>
-                <span className="block text-xs text-ink-muted">Next stage</span>
+                <span className="block text-xs text-ink-muted">Next {unit}</span>
                 <span className="font-medium">{m.next.title}</span>
               </span>
               <ArrowRight className="h-5 w-5 shrink-0 text-ink-muted" />

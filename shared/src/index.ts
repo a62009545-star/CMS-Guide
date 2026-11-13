@@ -8,6 +8,14 @@ export type Role = (typeof ROLES)[number];
 export const STATUSES = ['draft', 'published'] as const;
 export type Status = (typeof STATUSES)[number];
 
+/** Where a module appears: the 7-stage CMS lifecycle, or the configuration & management area. */
+export const SECTIONS = ['lifecycle', 'configuration'] as const;
+export type Section = (typeof SECTIONS)[number];
+export const SECTION_LABEL: Record<Section, string> = {
+  lifecycle: 'CMS lifecycle',
+  configuration: 'Configuration & management',
+};
+
 export const GUIDELINE_TYPES = ['must', 'should', 'note'] as const;
 export type GuidelineType = (typeof GUIDELINE_TYPES)[number];
 
@@ -145,6 +153,7 @@ export type WalkthroughStepInput = z.infer<typeof walkthroughStepSchema>;
 export const moduleInputSchema = z.object({
   title: z.string().trim().min(2).max(100),
   slug: slugSchema,
+  section: z.enum(SECTIONS).default('lifecycle'),
   icon: z.string().trim().min(1).max(40).default('box'),
   summary: z.string().trim().min(1).max(400),
   e2eContent: richTextSchema,

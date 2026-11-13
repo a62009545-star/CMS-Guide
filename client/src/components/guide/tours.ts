@@ -43,9 +43,10 @@ export function guideFor(pathname: string): PageGuide | null {
       greeting: 'Hi, I’m Relay. I can show you how this guide works. It takes about a minute.',
       steps: [
         { target: '[data-guide="lifecycle"]', title: 'The CMS lifecycle', text: 'Every change goes through these seven stages in order. Open a stage to see what it does, who is involved and how to do each task.' },
-        { target: '[data-guide="sidebar"]', title: 'Stages, always at hand', text: 'The same seven stages stay in this sidebar on every page. The red line shows how far along the lifecycle you are.' },
+        { target: '[data-guide="sidebar"]', title: 'Stages, always at hand', text: 'The seven stages stay in this sidebar on every page, with Configuration & management below them. The red line shows how far along the lifecycle you are.' },
         { target: '[data-guide="menu"]', title: 'Stages, always at hand', text: 'Open this menu for the seven stages on any page.' },
         ...header,
+        { target: '[data-guide="config-home"]', title: 'Configuration & management', text: 'How to use CHM itself: signing in, Team Management, the activity database, the roster and the CRQ Workflow.' },
         { target: '[data-guide="recent"]', title: 'Recently updated', text: 'Walkthroughs that changed lately. Worth a look if you used them before.' },
         { target: '[data-guide="bookmarked"]', title: 'Your bookmarks', text: 'Bookmark any stage or walkthrough and it appears here, so the ones you use most are one click away.' },
         { title: 'Something out of date?', text: 'If a step no longer matches what you see in CMS, tell your CMS admin so they can update the guide.', roles: ['viewer'] },
@@ -57,15 +58,15 @@ export function guideFor(pathname: string): PageGuide | null {
   if (parts[0] === 'modules' && parts.length === 2) {
     return {
       key: 'module',
-      greeting: 'This page explains one stage of the lifecycle. Want a quick tour of how it’s laid out?',
+      greeting: 'This page explains one part of CMS: a lifecycle stage or a configuration topic. Want a quick tour of how it’s laid out?',
       steps: [
-        { target: '#overview', title: 'How it works', text: 'What this stage does, its inputs and outputs, who is involved and the SLA. Start here if the stage is new to you.' },
-        { target: '#flow', title: 'Process flow', text: 'The stage at a glance, in the order things happen.' },
+        { target: '#overview', title: 'How it works', text: 'What this part of CMS does, where to find it, who is involved and what you need to know. Start here if it is new to you.' },
+        { target: '#flow', title: 'Process flow', text: 'The main steps at a glance, in the order things happen.' },
         { target: '#guidelines', title: 'Guidelines', text: '“Must” is a rule you have to follow. “Should” is strongly recommended. “Note” is useful background.' },
-        { target: '#walkthroughs', title: 'Walkthroughs', text: 'Step-by-step instructions for each task in this stage, with screenshots. A green tick means you have marked it as read.' },
+        { target: '#walkthroughs', title: 'Walkthroughs', text: 'Step-by-step instructions for each task, with screenshots. A green tick means you have marked it as read.' },
         { target: '#faqs', title: 'FAQs', text: 'Common questions. Click a question to see the answer.' },
-        { target: '[data-guide="bookmark"]', title: 'Bookmark this stage', text: 'Save it to your bookmarks on the home page.' },
-        { target: '[data-guide="stage-nav"]', title: 'Previous and next stage', text: 'Move along the lifecycle without going back to the home page.' },
+        { target: '[data-guide="bookmark"]', title: 'Bookmark this page', text: 'Save it to your bookmarks on the home page.' },
+        { target: '[data-guide="stage-nav"]', title: 'Previous and next', text: 'Move to the neighbouring stage or topic without going back to the home page.' },
       ],
     };
   }

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { get } from './client';
 import type { AuditEntry, ModuleDetail, ModuleListItem, Page, SearchDoc, SubTaskDetail, User } from './types';
 
@@ -24,6 +25,19 @@ export const useMe = () =>
 
 export const useModules = () =>
   useQuery({ queryKey: qk.modules, queryFn: () => get<{ items: ModuleListItem[] }>('/modules').then((r) => r.items) });
+
+/** Modules split by section, each in its own order. Older records without a section count as lifecycle. */
+export function useModuleSections() {
+  const q = useModules();
+  const sections = useMemo(() => {
+    const all = q.data ?? [];
+    return {
+      lifecycle: all.filter((m) => (m.section ?? 'lifecycle') === 'lifecycle'),
+      configuration: all.filter((m) => m.section === 'configuration'),
+    };
+  }, [q.data]);
+  return { ...q, ...sections };
+}
 
 export const useModule = (slug: string, preview = false) =>
   useQuery({ queryKey: qk.module(slug, preview), queryFn: () => get<ModuleDetail>(`/modules/${slug}`, { preview: preview ? 1 : undefined }) });

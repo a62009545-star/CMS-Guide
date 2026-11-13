@@ -151,7 +151,7 @@ export function SubTaskPage() {
         <nav aria-label="Breadcrumb" className="text-sm text-ink-muted">
           <ol className="flex flex-wrap items-center gap-1.5">
             <li>
-              <Link to="/" className="hover:text-ink">Lifecycle</Link>
+              <Link to="/" className="hover:text-ink">{s.module.section === 'configuration' ? 'Configuration & management' : 'Lifecycle'}</Link>
             </li>
             <li aria-hidden>›</li>
             <li>
@@ -251,7 +251,7 @@ export function SubTaskPage() {
           </section>
         )}
 
-        <nav aria-label="Walkthroughs in this stage" className="mt-10 grid gap-3 sm:grid-cols-2">
+        <nav aria-label="Walkthroughs in this section" className="mt-10 grid gap-3 sm:grid-cols-2">
           {s.prev ? (
             <Link to={`/modules/${s.module.slug}/${s.prev.slug}`} className="card flex items-center gap-3 p-4 hover:border-brand/40">
               <ArrowLeft className="h-5 w-5 shrink-0 text-ink-muted" />

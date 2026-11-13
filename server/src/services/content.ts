@@ -14,6 +14,7 @@ export function moduleToSnapshot(m: Record<string, any>): ModuleSnapshot {
   return {
     title: m.title,
     slug: m.slug,
+    section: m.section ?? 'lifecycle',
     icon: m.icon,
     summary: m.summary,
     e2eContent: { html: m.e2eContent?.html ?? '', json: m.e2eContent?.json ?? null },
@@ -123,7 +124,8 @@ export async function hydrateModule(doc: Record<string, any>, opts: { preview: b
     .sort({ order: 1 })
     .select('title slug summary order status steps.title updatedAt pendingDraftAt')
     .lean();
-  const siblingFilter = opts.staff ? {} : { status: 'published' };
+  // Previous/next stay within the module's own section (lifecycle or configuration).
+  const siblingFilter = { section: doc.section ?? 'lifecycle', ...(opts.staff ? {} : { status: 'published' }) };
   const [prev, next] = await Promise.all([
     Module.findOne({ ...siblingFilter, order: { $lt: doc.order } }).sort({ order: -1 }).select('title slug order').lean(),
     Module.findOne({ ...siblingFilter, order: { $gt: doc.order } }).sort({ order: 1 }).select('title slug order').lean(),
@@ -166,7 +168,7 @@ export async function hydrateSubTask(doc: Record<string, any>, opts: { preview: 
   const [media, names, module, related, prev, next] = await Promise.all([
     mediaMap(allMediaIds),
     userNames([doc.updatedBy, doc.pendingDraftBy]),
-    Module.findById(doc.moduleId).select('title slug order icon status').lean(),
+    Module.findById(doc.moduleId).select('title slug order icon status section').lean(),
     SubTask.find(relatedFilter).select('title slug summary moduleId').lean(),
     SubTask.findOne({ ...siblingFilter, order: { $lt: doc.order } }).sort({ order: -1 }).select('title slug').lean(),
     SubTask.findOne({ ...siblingFilter, order: { $gt: doc.order } }).sort({ order: 1 }).select('title slug').lean(),
