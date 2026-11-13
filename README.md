@@ -160,7 +160,7 @@ After each content change the API emits `content:changed` over Socket.io (authen
 ## Pages
 
 - **Home** (`/`): a central search with instant results, then Recently updated, Your bookmarks and Quick links.
-- **CMS lifecycle** (`/lifecycle`): the seven stages as one route. Selecting a stage shows its guide and walkthrough steps below (`?stage=<slug>`); each stage also has a full page with guidelines and FAQs.
+- **CMS lifecycle** (`/lifecycle`): the seven stages as one route. Selecting a stage shows its full page below the route (how it works, flow, guidelines, walkthroughs and FAQs), kept in the address as `?stage=<slug>`. Each stage also has its own page at `/modules/<slug>`.
 - **Configuration & management** (`/configuration`).
 - Walkthrough pages have a single left column with the stage, progress and steps.
 

@@ -34,21 +34,30 @@ function Section({ id, title, edit, children }: { id: string; title: string; edi
 
 export function ModulePage() {
   const { moduleSlug = '' } = useParams();
+  return <ModuleView slug={moduleSlug} />;
+}
+
+/**
+ * Everything about one module on a single page: overview, flow, guidelines, walkthroughs, FAQs.
+ * Used as the module's own page, and embedded under the route on the CMS lifecycle page.
+ */
+export function ModuleView({ slug: moduleSlug, embedded = false }: { slug: string; embedded?: boolean }) {
   const [params] = useSearchParams();
   const preview = params.get('preview') === '1';
   const { data: m, isLoading, error, refetch } = useModule(moduleSlug, preview);
   const { user, isStaff } = useAuth();
   const location = useLocation();
-  useDocumentTitle(m?.title);
-  useHashScroll(!!m);
+  useDocumentTitle(embedded ? 'CMS lifecycle' : m?.title);
+  useHashScroll(!!m && !embedded);
+  const wrap = embedded ? '' : 'mx-auto max-w-6xl px-4 py-8 sm:px-8';
 
-  if (isLoading) return <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8"><PageSkeleton /></div>;
+  if (isLoading) return <div className={wrap}><PageSkeleton /></div>;
   if (error instanceof ApiError && error.status === 404) return <NotFoundPage />;
-  if (error || !m) return <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8"><ErrorState message={(error as Error)?.message} onRetry={() => refetch()} /></div>;
+  if (error || !m) return <div className={wrap}><ErrorState message={(error as Error)?.message} onRetry={() => refetch()} /></div>;
 
   // Each section has its own address; send old or mistyped links to the right one.
   const home = modulePath(m.section, m.slug);
-  if (location.pathname !== home) return <Navigate replace to={{ pathname: home, search: location.search, hash: location.hash }} />;
+  if (!embedded && location.pathname !== home) return <Navigate replace to={{ pathname: home, search: location.search, hash: location.hash }} />;
   const editBase = `/admin/modules/${m._id}`;
   const isLifecycle = (m.section ?? 'lifecycle') === 'lifecycle';
   const unit = isLifecycle ? 'stage' : 'topic';
@@ -62,7 +71,7 @@ export function ModulePage() {
   ].filter(Boolean) as { id: string; label: string }[];
 
   return (
-    <div className="mx-auto flex max-w-6xl gap-10 px-4 py-8 sm:px-8">
+    <div className={embedded ? 'flex gap-10' : 'mx-auto flex max-w-6xl gap-10 px-4 py-8 sm:px-8'}>
       <article className="min-w-0 flex-1">
         <StaffBar
           entityType="module"
@@ -160,7 +169,7 @@ export function ModulePage() {
 
         <nav aria-label={isLifecycle ? 'Lifecycle' : SECTION_LABEL.configuration} data-guide="stage-nav" className="mt-12 grid gap-3 sm:grid-cols-2">
           {m.prev ? (
-            <Link to={modulePath(m.section, m.prev.slug)} className="card flex items-center gap-3 p-4 hover:border-brand/40">
+            <Link to={embedded ? `/lifecycle?stage=${m.prev.slug}` : modulePath(m.section, m.prev.slug)} className="card flex items-center gap-3 p-4 hover:border-brand/40">
               <ArrowLeft className="h-5 w-5 shrink-0 text-ink-muted" />
               <span>
                 <span className="block text-xs text-ink-muted">Previous {unit}</span>
@@ -171,7 +180,7 @@ export function ModulePage() {
             <span />
           )}
           {m.next && (
-            <Link to={modulePath(m.section, m.next.slug)} className="card flex items-center justify-end gap-3 p-4 text-right hover:border-brand/40">
+            <Link to={embedded ? `/lifecycle?stage=${m.next.slug}` : modulePath(m.section, m.next.slug)} className="card flex items-center justify-end gap-3 p-4 text-right hover:border-brand/40">
               <span>
                 <span className="block text-xs text-ink-muted">Next {unit}</span>
                 <span className="font-medium">{m.next.title}</span>

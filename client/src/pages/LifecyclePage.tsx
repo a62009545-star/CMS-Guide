@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useModuleSections } from '@/api/queries';
 import { LifecycleRoute } from '@/components/content/LifecycleRoute';
-import { StageDetail } from '@/components/content/StageDetail';
+import { ModuleView } from './ModulePage';
 import { ErrorState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
@@ -27,7 +27,7 @@ export function LifecyclePage() {
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-8 sm:py-14">
       <h1 className="text-3xl font-bold sm:text-4xl">CMS lifecycle</h1>
       <p className="mt-3 max-w-2xl text-ink-muted">
-        Every CRQ goes through these seven stages, in order. Select a stage to see its guide and steps below.
+        Every CRQ goes through these seven stages, in order. Select a stage to see everything about it below: how it works, the process flow, guidelines, walkthroughs and FAQs.
       </p>
       <div className="mt-10">
         {isLoading ? (
@@ -44,7 +44,7 @@ export function LifecyclePage() {
       </div>
       {selected && (
         <div ref={detailRef} className="mt-12 scroll-mt-24 border-t border-line pt-10" aria-live="polite">
-          <StageDetail key={selected} slug={selected} />
+          <ModuleView key={selected} slug={selected} embedded />
         </div>
       )}
     </div>
