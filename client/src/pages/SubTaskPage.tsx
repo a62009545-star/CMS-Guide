@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, ChevronDown, Circle } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { modulePath } from '@cms/shared';
 import { toast } from 'sonner';
 import { ApiError, errorMessage, post } from '@/api/client';
 import { qk, useSubTask } from '@/api/queries';
@@ -92,6 +93,7 @@ export function SubTaskPage() {
   const qc = useQueryClient();
   const { cue } = useGuide();
   const navigate = useNavigate();
+  const location = useLocation();
   const [stepsOpen, setStepsOpen] = useState(false);
   useDocumentTitle(s?.title);
   useHashScroll(!!s);
@@ -124,13 +126,16 @@ export function SubTaskPage() {
   if (error || !s) return <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8"><ErrorState message={(error as Error)?.message} onRetry={() => refetch()} /></div>;
 
   const n = s.steps.length;
+  const modHome = modulePath(s.module.section, s.module.slug);
+  const here = modulePath(s.module.section, s.module.slug, s.slug);
+  if (location.pathname !== here) return <Navigate replace to={{ pathname: here, search: location.search, hash: location.hash }} />;
   const editBase = `/admin/subtasks/${s._id}`;
 
   return (
     <div ref={topRef} className="mx-auto flex max-w-6xl gap-10 px-4 py-8 sm:px-8">
       <aside data-guide="step-rail" className="hidden w-60 shrink-0 lg:block">
         <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pb-4">
-          <Link to={`/modules/${s.module.slug}`} className="mb-5 inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink">
+          <Link to={modHome} className="mb-5 inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink">
             <ArrowLeft className="h-4 w-4" /> {s.module.title}
           </Link>
           <StepRail steps={s.steps} active={active} seen={seen} onJump={jump} />
@@ -151,11 +156,15 @@ export function SubTaskPage() {
         <nav aria-label="Breadcrumb" className="text-sm text-ink-muted">
           <ol className="flex flex-wrap items-center gap-1.5">
             <li>
-              <Link to="/" className="hover:text-ink">{s.module.section === 'configuration' ? 'Configuration & management' : 'Lifecycle'}</Link>
+              {s.module.section === 'configuration' ? (
+                <Link to="/configuration" className="hover:text-ink">Configuration &amp; management</Link>
+              ) : (
+                <Link to="/" className="hover:text-ink">Lifecycle</Link>
+              )}
             </li>
             <li aria-hidden>›</li>
             <li>
-              <Link to={`/modules/${s.module.slug}`} className="hover:text-ink">{s.module.title}</Link>
+              <Link to={modHome} className="hover:text-ink">{s.module.title}</Link>
             </li>
           </ol>
         </nav>
@@ -240,7 +249,7 @@ export function SubTaskPage() {
             <ul className="mt-3 grid gap-3 sm:grid-cols-2">
               {s.related.map((r) => (
                 <li key={r._id}>
-                  <Link to={`/modules/${r.moduleSlug}/${r.slug}`} className="card block h-full p-4 hover:border-brand/40">
+                  <Link to={r.path ?? `/modules/${r.moduleSlug}/${r.slug}`} className="card block h-full p-4 hover:border-brand/40">
                     <span className="block text-xs text-ink-muted">{r.moduleTitle}</span>
                     <span className="mt-1 block font-medium">{r.title}</span>
                     <span className="mt-1 block text-sm text-ink-muted">{r.summary}</span>
@@ -253,7 +262,7 @@ export function SubTaskPage() {
 
         <nav aria-label="Walkthroughs in this section" className="mt-10 grid gap-3 sm:grid-cols-2">
           {s.prev ? (
-            <Link to={`/modules/${s.module.slug}/${s.prev.slug}`} className="card flex items-center gap-3 p-4 hover:border-brand/40">
+            <Link to={modulePath(s.module.section, s.module.slug, s.prev.slug)} className="card flex items-center gap-3 p-4 hover:border-brand/40">
               <ArrowLeft className="h-5 w-5 shrink-0 text-ink-muted" />
               <span>
                 <span className="block text-xs text-ink-muted">Previous walkthrough</span>
@@ -264,7 +273,7 @@ export function SubTaskPage() {
             <span />
           )}
           {s.next && (
-            <Link to={`/modules/${s.module.slug}/${s.next.slug}`} className="card flex items-center justify-end gap-3 p-4 text-right hover:border-brand/40">
+            <Link to={modulePath(s.module.section, s.module.slug, s.next.slug)} className="card flex items-center justify-end gap-3 p-4 text-right hover:border-brand/40">
               <span>
                 <span className="block text-xs text-ink-muted">Next walkthrough</span>
                 <span className="font-medium">{s.next.title}</span>

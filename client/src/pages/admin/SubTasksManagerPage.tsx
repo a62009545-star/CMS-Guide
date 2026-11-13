@@ -3,6 +3,7 @@ import { ExternalLink, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import { modulePath } from '@cms/shared';
 import { del, errorMessage, get, patch, post } from '@/api/client';
 import { useModules } from '@/api/queries';
 import type { Page } from '@/api/types';
@@ -27,7 +28,7 @@ interface Row {
   updatedAt: string;
   updatedByName: string | null;
   hasPendingDraft: boolean;
-  module: { _id: string; title: string; slug: string } | null;
+  module: { _id: string; title: string; slug: string; section?: string } | null;
 }
 
 export function SubTasksManagerPage() {
@@ -144,7 +145,7 @@ export function SubTasksManagerPage() {
               <StatusBadge status={r.status} pending={r.hasPendingDraft} />
               <div className="flex gap-1">
                 {r.module && (
-                  <Link to={`/modules/${r.module.slug}/${r.slug}`} className="grid h-8 w-8 place-items-center rounded-md text-ink-muted hover:bg-surface-sunken" aria-label={`View ${r.title}`}>
+                  <Link to={modulePath(r.module.section, r.module.slug, r.slug)} className="grid h-8 w-8 place-items-center rounded-md text-ink-muted hover:bg-surface-sunken" aria-label={`View ${r.title}`}>
                     <ExternalLink className="h-4 w-4" />
                   </Link>
                 )}

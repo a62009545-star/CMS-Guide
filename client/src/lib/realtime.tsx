@@ -33,10 +33,11 @@ export function RealtimeBridge() {
 
       if (e.by.id === user._id) return;
       const path = pathRef.current;
-      const parts = path.split('/').filter(Boolean); // ['modules', moduleSlug, subSlug?]
-      const onModule = parts[0] === 'modules' && parts.length === 2 && e.entityType === 'module' && e.slug === parts[1];
-      const onSubTask = parts[0] === 'modules' && parts.length === 3 && e.entityType === 'subtask' && e.slug === parts[2] && e.moduleSlug === parts[1];
-      const onParentModule = parts[0] === 'modules' && parts.length === 2 && e.entityType === 'subtask' && e.moduleSlug === parts[1];
+      const parts = path.split('/').filter(Boolean); // ['modules' | 'configuration', moduleSlug, subSlug?]
+      const inContent = parts[0] === 'modules' || parts[0] === 'configuration';
+      const onModule = inContent && parts.length === 2 && e.entityType === 'module' && e.slug === parts[1];
+      const onSubTask = inContent && parts.length === 3 && e.entityType === 'subtask' && e.slug === parts[2] && e.moduleSlug === parts[1];
+      const onParentModule = inContent && parts.length === 2 && e.entityType === 'subtask' && e.moduleSlug === parts[1];
       if (onModule || onSubTask) {
         toast(`This page was updated by ${e.by.name}`, { description: 'You are now seeing the latest version.' });
       } else if (onParentModule) {

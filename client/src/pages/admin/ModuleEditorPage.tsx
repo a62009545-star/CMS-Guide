@@ -3,7 +3,7 @@ import { ImagePlus, Plus } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { GUIDELINE_TYPES, SECTIONS, SECTION_LABEL, moduleInputSchema, type Section } from '@cms/shared';
+import { GUIDELINE_TYPES, SECTIONS, SECTION_LABEL, moduleInputSchema, modulePath, type Section } from '@cms/shared';
 import { errorMessage, get, patch, post, put } from '@/api/client';
 import type { Media, ModuleEditPayload } from '@/api/types';
 import { MediaView } from '@/components/content/Media';
@@ -106,14 +106,14 @@ export function ModuleEditorPage() {
     <div>
       <EditorHeader
         title={isNew ? 'New module' : form.title || 'Untitled module'}
-        back={{ to: '/admin/modules', label: 'Modules' }}
+        back={form.section === 'configuration' ? { to: '/admin/configuration', label: SECTION_LABEL.configuration } : { to: '/admin/modules', label: 'Modules' }}
         status={data?.status}
         pending={data?.hasPendingDraft}
         pendingBy={data?.pendingDraftByName}
         updatedAt={data?.updatedAt}
         updatedBy={data?.updatedByName}
         historyPath={isNew ? undefined : `/admin/versions/module/${id}`}
-        viewPath={isNew ? undefined : `/modules/${data?.snapshot.slug}${data?.hasPendingDraft ? '?preview=1' : ''}`}
+        viewPath={isNew || !data ? undefined : `${modulePath(data.snapshot.section, data.snapshot.slug)}${data.hasPendingDraft ? '?preview=1' : ''}`}
       />
 
       <div className="space-y-6">
@@ -126,7 +126,7 @@ export function ModuleEditorPage() {
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value, slug: slugTouched ? f.slug : slugify(e.target.value) }))}
               />
             </Field>
-            <Field label="Address" htmlFor="m-slug" hint={`/modules/${form.slug || '…'}`} error={err('slug')}>
+            <Field label="Address" htmlFor="m-slug" hint={modulePath(form.section, form.slug || '…')} error={err('slug')}>
               <Input
                 id="m-slug"
                 value={form.slug}

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { Types } from 'mongoose';
+import { modulePath } from '@cms/shared';
 import { requireRole } from '../middleware/auth.js';
 import { Module, SubTask, Version } from '../models/index.js';
 import { record } from '../services/audit.js';
@@ -52,7 +53,7 @@ versionsRouter.post(
       doc.set({ ...moduleDocFields(snap), updatedBy: user.id, pendingDraft: null, pendingDraftBy: null, pendingDraftAt: null });
       await doc.save();
       await saveVersion({ entityType: 'module', entityId: doc._id, snapshot: snap, user, changeNote: note });
-      await record({ user, action: 'restore', entityType: 'module', entityId: doc._id, entityTitle: doc.title, slug: doc.slug, path: `/modules/${doc.slug}`, visibleToViewers: doc.status === 'published', meta: { versionNumber: v.versionNumber } });
+      await record({ user, action: 'restore', entityType: 'module', entityId: doc._id, entityTitle: doc.title, slug: doc.slug, path: modulePath(doc.section, doc.slug), visibleToViewers: doc.status === 'published', meta: { versionNumber: v.versionNumber } });
     } else if (v.entityType === 'subtask') {
       const doc = await SubTask.findById(v.entityId);
       if (!doc) throw notFound('Sub-task');
@@ -60,9 +61,9 @@ versionsRouter.post(
       if (!(await Module.exists({ _id: snap.moduleId }))) throw new HttpError(409, 'The parent module of this version no longer exists');
       doc.set({ ...subTaskDocFields(snap), updatedBy: user.id, pendingDraft: null, pendingDraftBy: null, pendingDraftAt: null });
       await doc.save();
-      const mod = await Module.findById(doc.moduleId).select('slug status').lean();
+      const mod = await Module.findById(doc.moduleId).select('slug status section').lean();
       await saveVersion({ entityType: 'subtask', entityId: doc._id, snapshot: snap, user, changeNote: note });
-      await record({ user, action: 'restore', entityType: 'subtask', entityId: doc._id, entityTitle: doc.title, slug: doc.slug, moduleSlug: mod?.slug, path: `/modules/${mod?.slug}/${doc.slug}`, visibleToViewers: doc.status === 'published' && mod?.status === 'published', meta: { versionNumber: v.versionNumber } });
+      await record({ user, action: 'restore', entityType: 'subtask', entityId: doc._id, entityTitle: doc.title, slug: doc.slug, moduleSlug: mod?.slug, path: modulePath(mod?.section, mod?.slug ?? '', doc.slug), visibleToViewers: doc.status === 'published' && mod?.status === 'published', meta: { versionNumber: v.versionNumber } });
     } else {
       throw new HttpError(400, 'This version cannot be restored');
     }

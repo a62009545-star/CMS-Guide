@@ -8,6 +8,7 @@ import { PageSkeleton } from '@/components/ui/Skeleton';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { RealtimeBridge } from '@/lib/realtime';
 import { BookmarksPage } from '@/pages/BookmarksPage';
+import { ConfigurationPage } from '@/pages/ConfigurationPage';
 import { HomePage } from '@/pages/HomePage';
 import { LoginPage } from '@/pages/LoginPage';
 import { ModulePage } from '@/pages/ModulePage';
@@ -54,6 +55,9 @@ export function App() {
             <Route index element={<HomePage />} />
             <Route path="modules/:moduleSlug" element={<ModulePage />} />
             <Route path="modules/:moduleSlug/:subSlug" element={<SubTaskPage />} />
+            <Route path="configuration" element={<ConfigurationPage />} />
+            <Route path="configuration/:moduleSlug" element={<ModulePage />} />
+            <Route path="configuration/:moduleSlug/:subSlug" element={<SubTaskPage />} />
             <Route path="search" element={<SearchPage />} />
             <Route path="bookmarks" element={<BookmarksPage />} />
             <Route

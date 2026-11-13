@@ -5,7 +5,6 @@ import { get } from '@/api/client';
 import { qk, useActivity, useModuleSections } from '@/api/queries';
 import { LifecycleRoute } from '@/components/content/LifecycleRoute';
 import { ErrorState } from '@/components/ui/EmptyState';
-import { ModuleIcon } from '@/components/ui/Icon';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useAuth } from '@/lib/auth';
@@ -46,29 +45,6 @@ export function HomePage() {
           </div>
         </div>
       </section>
-
-      {modules.configuration.length > 0 && (
-        <section aria-labelledby="config-h" data-guide="config-home" className="mx-auto max-w-7xl px-4 pt-10 sm:px-8">
-          <h2 id="config-h" className="text-xl font-semibold">
-            Configuration &amp; management
-          </h2>
-          <p className="mt-1 max-w-2xl text-sm text-ink-muted">How to set up teams, plan types and rosters in CHM, and work on CRQs in the Scheduler.</p>
-          <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {modules.configuration.map((m) => (
-              <li key={m._id}>
-                <Link to={`/modules/${m.slug}`} className="card group flex h-full flex-col p-4 transition-[border-color,box-shadow] hover:border-brand/40 hover:shadow-raised">
-                  <ModuleIcon name={m.icon} className="h-5 w-5 text-ink-muted group-hover:text-brand-fg" />
-                  <span className="mt-2.5 font-semibold leading-snug">{m.title}</span>
-                  <span className="mt-1 line-clamp-3 text-sm text-ink-muted">{m.summary}</span>
-                  <span className="mt-auto pt-3 text-xs text-ink-muted">
-                    {m.subTaskCount} {m.subTaskCount === 1 ? 'walkthrough' : 'walkthroughs'}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
 
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-8 lg:grid-cols-[1fr_340px]">
         <section className="card" aria-labelledby="recent-h" data-guide="recent">
@@ -118,6 +94,12 @@ export function HomePage() {
                   </Link>
                 </li>
               )}
+              <li>
+                <Link to="/configuration" className="flex items-center justify-between rounded-md px-2 py-2 text-sm hover:bg-surface-sunken">
+                  Configuration &amp; management in CHM
+                  <ArrowUpRight className="h-4 w-4 text-ink-subtle" />
+                </Link>
+              </li>
               <li>
                 <Link to="/search" className="flex items-center justify-between rounded-md px-2 py-2 text-sm hover:bg-surface-sunken">
                   Search every step and guideline

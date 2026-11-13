@@ -1,4 +1,4 @@
-import { FileClock, Image, LayoutDashboard, Layers, ListChecks, ScrollText, Users } from 'lucide-react';
+import { FileClock, Image, LayoutDashboard, Layers, ListChecks, ScrollText, Settings2, Users } from 'lucide-react';
 import { NavLink, Route, Routes } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
@@ -18,6 +18,7 @@ export default function AdminRoutes() {
   const nav = [
     { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
     { to: '/admin/modules', label: 'Modules', icon: Layers },
+    { to: '/admin/configuration', label: 'Configuration', icon: Settings2 },
     { to: '/admin/subtasks', label: 'Sub-tasks', icon: ListChecks },
     { to: '/admin/media', label: 'Media library', icon: Image },
     { to: '/admin/versions', label: 'Version history', icon: FileClock },
@@ -47,7 +48,8 @@ export default function AdminRoutes() {
       </nav>
       <Routes>
         <Route index element={<DashboardPage />} />
-        <Route path="modules" element={<ModulesManagerPage />} />
+        <Route path="modules" element={<ModulesManagerPage key="lifecycle" section="lifecycle" />} />
+        <Route path="configuration" element={<ModulesManagerPage key="configuration" section="configuration" />} />
         <Route path="modules/new" element={<ModuleEditorPage />} />
         <Route path="modules/:id" element={<ModuleEditorPage />} />
         <Route path="subtasks" element={<SubTasksManagerPage />} />

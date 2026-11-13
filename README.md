@@ -157,16 +157,23 @@ After each content change the API emits `content:changed` over Socket.io (authen
 - Helmet sets a strict Content Security Policy; video embeds are limited to YouTube, Vimeo and SharePoint.
 - Changing a user's role or password signs them out everywhere (token version check).
 
-## Content sections
+## Content areas
 
-Modules belong to one of two sections (the `section` field):
+The guide has two separate areas, switched with the tabs in the header. Each has its own landing page, addresses, sidebar and admin tab.
 
-- **CMS lifecycle**: the seven numbered stages, drawn as the route on the home page and in the sidebar.
-- **Configuration & management**: how to use CHM itself, written from the team's SOPs: Getting started (sign in), Team Management, Activity Database Setup & View, Roster and Scheduler: CRQ Workflow. Their screenshots are in `client/public/sop/`.
+| Area | Address | Admin |
+| --- | --- | --- |
+| **CMS lifecycle**: the seven numbered stages, drawn as the route on the home page | `/`, `/modules/<stage>/<walkthrough>` | Admin › Modules |
+| **Configuration & management**: how to use CHM itself | `/configuration`, `/configuration/<topic>/<walkthrough>` | Admin › Configuration |
 
-Admins choose the section in the module editor and reorder modules within each section under **Admin › Modules**.
+A module's area is its `section` field (`lifecycle` or `configuration`), chosen in the module editor. Links are built with `modulePath()` in `shared/src/index.ts`; an old `/modules/...` link to a configuration topic redirects to its `/configuration/...` address.
 
-Content added after the first deploy is applied by named, one-time migrations in `server/src/seed/run.ts` (recorded in the `migrations` collection), so an existing database gets the new section on its next start without re-seeding. A module an admin deletes is not added back.
+Content written from the team's SOPs (screenshots in `client/public/sop/`):
+
+- **Plan & Inventory Validation** (lifecycle stage 1) comes from the Scheduler / CRQ Workflow SOP: find a CRQ, start the stage and fetch plan data, review plan & inventory and submit validation. Stages 2–7 are still placeholder content.
+- **Configuration & management**: Getting started with CHM (sign in), Team Management, Activity Database Setup & View, and Roster.
+
+Content added after the first deploy is applied by named, one-time migrations in `server/src/seed/run.ts` (recorded in the `migrations` collection), so an existing database is updated on its next start without re-seeding. Replacing stage 1 keeps the same module record, so bookmarks still work and the previous content stays in its version history. A module an admin deletes is not added back.
 
 ## Guide mascot
 

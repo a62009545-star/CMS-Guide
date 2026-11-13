@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import type { ModuleInput, SubTaskInput } from '@cms/shared';
+import { modulePath, type ModuleInput, type SubTaskInput } from '@cms/shared';
 import { Media, Module, SubTask, User } from '../models/index.js';
 import { htmlToText, sanitizeRich } from './sanitize.js';
 
@@ -173,7 +173,7 @@ export async function hydrateSubTask(doc: Record<string, any>, opts: { preview: 
     SubTask.findOne({ ...siblingFilter, order: { $lt: doc.order } }).sort({ order: -1 }).select('title slug').lean(),
     SubTask.findOne({ ...siblingFilter, order: { $gt: doc.order } }).sort({ order: 1 }).select('title slug').lean(),
   ]);
-  const relatedModules = await Module.find({ _id: { $in: related.map((r) => r.moduleId) } }).select('slug title').lean();
+  const relatedModules = await Module.find({ _id: { $in: related.map((r) => r.moduleId) } }).select('slug title section').lean();
   const modSlug = new Map(relatedModules.map((m) => [String(m._id), m]));
 
   const { searchText: _s, pendingDraft, ...rest } = base;
@@ -196,6 +196,7 @@ export async function hydrateSubTask(doc: Record<string, any>, opts: { preview: 
       summary: r.summary,
       moduleSlug: modSlug.get(String(r.moduleId))?.slug,
       moduleTitle: modSlug.get(String(r.moduleId))?.title,
+      path: modulePath(modSlug.get(String(r.moduleId))?.section, modSlug.get(String(r.moduleId))?.slug ?? '', r.slug),
     })),
     prev,
     next,

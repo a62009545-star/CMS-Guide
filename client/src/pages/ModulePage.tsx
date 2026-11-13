@@ -1,7 +1,7 @@
 import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { SECTION_LABEL } from '@cms/shared';
+import { Link, Navigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
+import { SECTION_LABEL, modulePath } from '@cms/shared';
 import { ApiError } from '@/api/client';
 import { useModule } from '@/api/queries';
 import { FaqList, GuidelineList } from '@/components/content/Guidelines';
@@ -38,6 +38,7 @@ export function ModulePage() {
   const preview = params.get('preview') === '1';
   const { data: m, isLoading, error, refetch } = useModule(moduleSlug, preview);
   const { user, isStaff } = useAuth();
+  const location = useLocation();
   useDocumentTitle(m?.title);
   useHashScroll(!!m);
 
@@ -45,6 +46,9 @@ export function ModulePage() {
   if (error instanceof ApiError && error.status === 404) return <NotFoundPage />;
   if (error || !m) return <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8"><ErrorState message={(error as Error)?.message} onRetry={() => refetch()} /></div>;
 
+  // Each section has its own address; send old or mistyped links to the right one.
+  const home = modulePath(m.section, m.slug);
+  if (location.pathname !== home) return <Navigate replace to={{ pathname: home, search: location.search, hash: location.hash }} />;
   const editBase = `/admin/modules/${m._id}`;
   const isLifecycle = (m.section ?? 'lifecycle') === 'lifecycle';
   const unit = isLifecycle ? 'stage' : 'topic';
@@ -119,7 +123,7 @@ export function ModulePage() {
                 {m.subTasks.map((s, i) => (
                   <li key={s._id}>
                     <Link
-                      to={`/modules/${m.slug}/${s.slug}`}
+                      to={modulePath(m.section, m.slug, s.slug)}
                       className="card group flex h-full flex-col p-5 transition-[border-color,box-shadow] hover:border-brand/40 hover:shadow-raised"
                     >
                       <span className="flex items-center justify-between gap-3 text-xs text-ink-muted">
@@ -156,7 +160,7 @@ export function ModulePage() {
 
         <nav aria-label={isLifecycle ? 'Lifecycle' : SECTION_LABEL.configuration} data-guide="stage-nav" className="mt-12 grid gap-3 sm:grid-cols-2">
           {m.prev ? (
-            <Link to={`/modules/${m.prev.slug}`} className="card flex items-center gap-3 p-4 hover:border-brand/40">
+            <Link to={modulePath(m.section, m.prev.slug)} className="card flex items-center gap-3 p-4 hover:border-brand/40">
               <ArrowLeft className="h-5 w-5 shrink-0 text-ink-muted" />
               <span>
                 <span className="block text-xs text-ink-muted">Previous {unit}</span>
@@ -167,7 +171,7 @@ export function ModulePage() {
             <span />
           )}
           {m.next && (
-            <Link to={`/modules/${m.next.slug}`} className="card flex items-center justify-end gap-3 p-4 text-right hover:border-brand/40">
+            <Link to={modulePath(m.section, m.next.slug)} className="card flex items-center justify-end gap-3 p-4 text-right hover:border-brand/40">
               <span>
                 <span className="block text-xs text-ink-muted">Next {unit}</span>
                 <span className="font-medium">{m.next.title}</span>

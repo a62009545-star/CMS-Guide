@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { Types } from 'mongoose';
 import { z } from 'zod';
-import { paginationSchema, reorderSchema, statusSchema, subTaskInputSchema, type SubTaskInput } from '@cms/shared';
+import { modulePath, paginationSchema, reorderSchema, statusSchema, subTaskInputSchema, type SubTaskInput } from '@cms/shared';
 import { isAdmin, isStaff, requireRole } from '../middleware/auth.js';
 import { parseQuery, validateBody } from '../middleware/validate.js';
 import { Module, SubTask, Version } from '../models/index.js';
@@ -13,7 +13,7 @@ import { ah, escapeRegex, forbidden, HttpError, notFound, pageResult, paginate }
 export const subTasksRouter = Router();
 
 async function moduleSlug(moduleId: unknown) {
-  const m = await Module.findById(moduleId).select('slug status title').lean();
+  const m = await Module.findById(moduleId).select('slug status title section').lean();
   if (!m) throw new HttpError(422, 'Parent module does not exist');
   return m;
 }
@@ -46,7 +46,7 @@ subTasksRouter.get(
       SubTask.countDocuments(filter),
     ]);
     const [mods, names] = await Promise.all([
-      Module.find({ _id: { $in: items.map((i) => i.moduleId) } }).select('title slug order').lean(),
+      Module.find({ _id: { $in: items.map((i) => i.moduleId) } }).select('title slug order section').lean(),
       userNames(items.map((i) => i.updatedBy)),
     ]);
     const mm = new Map(mods.map((m) => [String(m._id), m]));
@@ -106,7 +106,7 @@ subTasksRouter.get(
     const [media, names, module] = await Promise.all([
       mediaMap(snapshot.steps.flatMap((s) => s.media)),
       userNames([doc.updatedBy, doc.pendingDraftBy]),
-      Module.findById(doc.moduleId).select('title slug').lean(),
+      Module.findById(doc.moduleId).select('title slug section').lean(),
     ]);
     res.json({
       _id: doc._id,
@@ -132,7 +132,7 @@ subTasksRouter.post(
     const { ids, moduleId } = req.body as { ids: string[]; moduleId: string };
     const mod = await moduleSlug(moduleId);
     await SubTask.bulkWrite(ids.map((id, i) => ({ updateOne: { filter: { _id: id, moduleId }, update: { $set: { order: i + 1 } } } })));
-    await record({ user: req.user!, action: 'reorder', entityType: 'subtask', entityTitle: `Sub-tasks in ${mod.title}`, moduleSlug: mod.slug, path: `/modules/${mod.slug}`, visibleToViewers: mod.status === 'published' });
+    await record({ user: req.user!, action: 'reorder', entityType: 'subtask', entityTitle: `Sub-tasks in ${mod.title}`, moduleSlug: mod.slug, path: modulePath(mod.section, mod.slug), visibleToViewers: mod.status === 'published' });
     res.json({ ok: true });
   }),
 );
@@ -148,7 +148,7 @@ subTasksRouter.post(
     const last = await SubTask.findOne({ moduleId: snap.moduleId }).sort({ order: -1 }).select('order').lean();
     const doc = await SubTask.create({ ...subTaskDocFields(snap), order: (last?.order ?? 0) + 1, status: 'draft', updatedBy: req.user!.id });
     await saveVersion({ entityType: 'subtask', entityId: doc._id, snapshot: snap, user: req.user!, changeNote: input.changeNote || 'Created' });
-    await record({ user: req.user!, action: 'create', entityType: 'subtask', entityId: doc._id, entityTitle: doc.title, slug: doc.slug, moduleSlug: mod.slug, path: `/modules/${mod.slug}/${doc.slug}` });
+    await record({ user: req.user!, action: 'create', entityType: 'subtask', entityId: doc._id, entityTitle: doc.title, slug: doc.slug, moduleSlug: mod.slug, path: modulePath(mod.section, mod.slug, doc.slug) });
     res.status(201).json({ _id: doc._id, slug: doc.slug, moduleSlug: mod.slug });
   }),
 );
@@ -165,7 +165,7 @@ subTasksRouter.put(
     if (snap.relatedSubTaskIds.includes(String(doc._id))) throw new HttpError(422, 'A sub-task cannot be related to itself');
     const user = req.user!;
     const mod = await moduleSlug(snap.moduleId);
-    const path = `/modules/${mod.slug}/${snap.slug}`;
+    const path = modulePath(mod.section, mod.slug, snap.slug);
 
     if (!isAdmin(user) && doc.status === 'published') {
       if (snap.slug !== doc.slug || snap.moduleId !== String(doc.moduleId)) {
@@ -220,7 +220,7 @@ subTasksRouter.patch(
       entityTitle: doc.title,
       slug: doc.slug,
       moduleSlug: mod.slug,
-      path: `/modules/${mod.slug}/${doc.slug}`,
+      path: modulePath(mod.section, mod.slug, doc.slug),
       visibleToViewers: mod.status === 'published',
     });
     res.json({ ok: true, status });

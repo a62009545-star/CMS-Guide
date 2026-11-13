@@ -1,13 +1,17 @@
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { SECTION_LABEL } from '@cms/shared';
+import { SECTION_LABEL, modulePath } from '@cms/shared';
 import { useModuleSections } from '@/api/queries';
 import { ModuleIcon } from '@/components/ui/Icon';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { cn } from '@/lib/utils';
 
+/** Which area a page belongs to: configuration pages, or everything else (the lifecycle). */
+export const areaOf = (pathname: string) => (pathname.startsWith('/configuration') ? 'configuration' : 'lifecycle');
+
 /**
- * Navigation in two groups.
+ * Navigation for the current area only, so the two areas stay separate.
+ * The header tabs switch between them.
  * - CMS lifecycle: drawn as a route (one line through numbered stations). Stations up to the
  *   module you are reading are filled red, so it also shows where you are in the flow.
  * - Configuration & management: a plain list with icons, because these topics are not a sequence.
@@ -15,7 +19,9 @@ import { cn } from '@/lib/utils';
 export function Sidebar({ collapsed, onToggle, onNavigate }: { collapsed: boolean; onToggle?: () => void; onNavigate?: () => void }) {
   const { lifecycle, configuration, isLoading } = useModuleSections();
   const { pathname } = useLocation();
-  const currentSlug = pathname.startsWith('/modules/') ? pathname.split('/')[2] : null;
+  const area = areaOf(pathname);
+  const parts = pathname.split('/').filter(Boolean);
+  const currentSlug = parts[0] === 'modules' || parts[0] === 'configuration' ? parts[1] ?? null : null;
   const currentIdx = lifecycle.findIndex((m) => m.slug === currentSlug);
 
   const heading = (text: string, first = false) =>
@@ -47,7 +53,7 @@ export function Sidebar({ collapsed, onToggle, onNavigate }: { collapsed: boolea
           </div>
         )}
 
-        {lifecycle.length > 0 && (
+        {area === 'lifecycle' && lifecycle.length > 0 && (
           <section aria-label={SECTION_LABEL.lifecycle}>
             {heading(SECTION_LABEL.lifecycle, true)}
             <ol className="relative">
@@ -96,16 +102,16 @@ export function Sidebar({ collapsed, onToggle, onNavigate }: { collapsed: boolea
           </section>
         )}
 
-        {configuration.length > 0 && (
+        {area === 'configuration' && configuration.length > 0 && (
           <section aria-label={SECTION_LABEL.configuration} data-guide="config-nav">
-            {heading(SECTION_LABEL.configuration)}
+            {heading(SECTION_LABEL.configuration, true)}
             <ul className="space-y-0.5">
               {configuration.map((m) => {
                 const active = currentSlug === m.slug;
                 return (
                   <li key={m._id}>
                     <NavLink
-                      to={`/modules/${m.slug}`}
+                      to={modulePath('configuration', m.slug)}
                       onClick={onNavigate}
                       title={collapsed ? m.title : undefined}
                       aria-current={active ? 'page' : undefined}

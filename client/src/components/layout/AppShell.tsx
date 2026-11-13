@@ -1,15 +1,38 @@
 import { Menu, Search, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Guide } from '@/components/guide/Guide';
 import { cn } from '@/lib/utils';
 import { CommandPalette } from './CommandPalette';
 import { Logo } from './Logo';
-import { Sidebar } from './Sidebar';
+import { Sidebar, areaOf } from './Sidebar';
 import { UserMenu } from './UserMenu';
 import { WhatsNew } from './WhatsNew';
 
 const COLLAPSE_KEY = 'cms-sidebar-collapsed';
+
+/** The two areas of the guide, kept separate. */
+function AreaTabs({ className, onNavigate, stacked }: { className?: string; onNavigate?: () => void; stacked?: boolean }) {
+  const { pathname } = useLocation();
+  const area = areaOf(pathname);
+  const tab = (active: boolean) =>
+    stacked
+      ? cn('block rounded-lg px-3 py-2.5 text-sm font-medium', active ? 'bg-brand-soft text-ink' : 'text-ink-muted hover:bg-surface-sunken hover:text-ink')
+      : cn(
+      'relative flex h-full items-center whitespace-nowrap px-1 text-sm font-medium transition-colors',
+      active ? 'text-ink after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-brand' : 'text-ink-muted hover:text-ink',
+    );
+  return (
+    <nav aria-label="Guide areas" className={cn(stacked ? 'flex flex-col gap-1' : 'flex items-stretch gap-5', className)} data-guide={stacked ? undefined : 'areas'}>
+      <NavLink to="/" onClick={onNavigate} className={() => tab(area === 'lifecycle' && !pathname.startsWith('/admin'))} aria-current={area === 'lifecycle' ? 'page' : undefined}>
+        CMS lifecycle
+      </NavLink>
+      <NavLink to="/configuration" onClick={onNavigate} className={() => tab(area === 'configuration')} aria-current={area === 'configuration' ? 'page' : undefined}>
+        Configuration &amp; management
+      </NavLink>
+    </nav>
+  );
+}
 
 export function AppShell({ hideSidebar = false }: { hideSidebar?: boolean }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -56,11 +79,12 @@ export function AppShell({ hideSidebar = false }: { hideSidebar?: boolean }) {
       <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/85">
         <div className="flex h-16 items-center gap-3 px-3 sm:px-5">
           {!hideSidebar && (
-            <button data-guide="menu" onClick={() => setDrawer(true)} className="rounded-lg p-2 text-ink-muted hover:bg-surface-sunken lg:hidden" aria-label="Open module menu">
+            <button data-guide="menu" onClick={() => setDrawer(true)} className="rounded-lg p-2 text-ink-muted hover:bg-surface-sunken lg:hidden" aria-label="Open menu">
               <Menu className="h-5 w-5" />
             </button>
           )}
           <Logo />
+          <AreaTabs className="ml-2 hidden h-16 lg:flex xl:ml-4" />
           <div className="flex flex-1 justify-center px-2">
             <button
               data-guide="search"
@@ -96,10 +120,14 @@ export function AppShell({ hideSidebar = false }: { hideSidebar?: boolean }) {
         {drawer && (
           <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Modules">
             <div className="absolute inset-0 animate-fade-in bg-ink/40" onClick={() => setDrawer(false)} />
-            <div className="absolute inset-y-0 left-0 w-[290px] max-w-[85vw] animate-pop-in bg-surface shadow-raised">
-              <button onClick={() => setDrawer(false)} className="absolute right-3 top-4 rounded-md p-1.5 text-ink-muted hover:bg-surface-sunken" aria-label="Close module menu">
-                <X className="h-5 w-5" />
-              </button>
+            <div className="absolute inset-y-0 left-0 flex w-[290px] max-w-[85vw] animate-pop-in flex-col bg-surface shadow-raised">
+              <div className="flex h-14 items-center justify-between border-b border-line px-4">
+                <span className="text-sm font-semibold">Menu</span>
+                <button onClick={() => setDrawer(false)} className="rounded-md p-1.5 text-ink-muted hover:bg-surface-sunken" aria-label="Close menu">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <AreaTabs stacked className="border-b border-line p-3" onNavigate={() => setDrawer(false)} />
               <Sidebar collapsed={false} onNavigate={() => setDrawer(false)} />
             </div>
           </div>

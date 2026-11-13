@@ -1,4 +1,5 @@
-/* Placeholder content for the seven CMS lifecycle modules. Replace with your organisation's real process. */
+/* Content for the seven CMS lifecycle modules. Stage 1 comes from the CRQ Workflow SOP; stages 2–7 are placeholders to replace with your real process. */
+import { planInventoryModule } from './plan-inventory.js';
 
 type Callout = { type: 'tip' | 'warning' | 'error'; text: string } | null;
 
@@ -47,88 +48,8 @@ const facts = (rows: [string, string][]) =>
 const callout = (type: 'tip' | 'warning' | 'info', html: string) => `<div data-callout="${type}"><p>${html}</p></div>`;
 
 export const modules: SeedModule[] = [
-  {
-    title: 'Plan & Inventory Validation',
-    slug: 'plan-inventory-validation',
-    icon: 'clipboard-check',
-    summary:
-      'Raise the change request and confirm that every network element it touches exists, is correctly recorded in inventory and is free of conflicting work.',
-    e2e: `
-<p>Every change starts here. The Requester raises a Change Request (CR) in CMS, and the Planner checks it against the live network inventory before anyone spends time on impact or procedure. A change that fails inventory validation never reaches the later stages, which keeps bad data out of the MOP and out of the maintenance window.</p>
-<h3>What this module does</h3>
-<ul><li>Captures the business reason, scope and target date of the change.</li><li>Matches each node, link and circuit in scope against the inventory system of record.</li><li>Flags overlapping CRs on the same elements in the same window (collision check).</li></ul>
-<h3>At a glance</h3>
-${facts([
-  ['Inputs', 'Change request form, list of affected network elements (NE IDs, circuit IDs), proposed window'],
-  ['Outputs', 'Validated CR with inventory snapshot attached; status <strong>Inventory Validated</strong>'],
-  ['Roles', 'Requester (raises CR), Planner (validates), Inventory SPOC (fixes data mismatches)'],
-  ['SLA', 'Planner validation within 1 business day of submission; 4 hours for Emergency CRs'],
-  ['Comes before', 'Impact Analysis'],
-])}
-${callout('info', 'Emergency CRs follow the same path but with compressed SLAs. They still need inventory validation — only the approval stages are shortened.')}
-`,
-    flow: [
-      ['Raise CR', 'Requester fills in scope, reason and proposed window'],
-      ['Auto inventory match', 'CMS looks up every NE and circuit ID'],
-      ['Resolve mismatches', 'Inventory SPOC corrects missing or stale records'],
-      ['Collision check', 'Detect overlapping changes on the same elements'],
-      ['Validate', 'Planner marks the CR as Inventory Validated'],
-    ],
-    guidelines: [
-      ['must', 'Every network element in scope must be identified by its inventory NE ID, not by hostname alone.'],
-      ['must', 'Do not move a CR past this stage while any inventory mismatch is open.'],
-      ['should', 'Raise standard changes at least 5 business days before the proposed window.'],
-      ['should', 'Group changes to the same site into one CR where the work shares a window.'],
-      ['note', 'The inventory snapshot attached at validation is what later stages compare against.'],
-    ],
-    faqs: [
-      ['What if a node is missing from inventory?', 'Use the "Report mismatch" action on the CR. It creates a ticket for the Inventory SPOC and pauses the CR until the record is fixed.'],
-      ['Can I edit the scope after validation?', 'Yes, but adding or removing elements sends the CR back to validation so the inventory check runs again.'],
-      ['How does the collision check decide on a conflict?', 'Two CRs conflict when they share at least one NE ID or circuit and their proposed windows overlap by any amount.'],
-    ],
-    subTasks: [
-      {
-        title: 'Raise a Change Request',
-        slug: 'raise-change-request',
-        summary: 'Create a new CR with the correct change type, scope and proposed window.',
-        prerequisites: ['CMS access with the Requester role', 'NE IDs or circuit IDs for every element in scope', 'Business justification approved by your line manager'],
-        expectedOutcome: 'A CR in Submitted status with a unique CR number, visible to the Planner queue.',
-        steps: [
-          { title: 'Open the new CR form', html: '<p>From the CMS home page select <strong>Create › Change Request</strong>. The form opens with your name pre-filled as Requester.</p>', images: 1 },
-          { title: 'Choose the change type', html: '<p>Select <strong>Standard</strong>, <strong>Normal</strong> or <strong>Emergency</strong>. The type decides which approvals and SLAs apply later in the lifecycle.</p><ul><li><strong>Standard</strong> — pre-approved, repeatable, low risk</li><li><strong>Normal</strong> — needs full impact analysis and approval</li><li><strong>Emergency</strong> — service is down or at imminent risk</li></ul>', callout: { type: 'warning', text: 'Emergency CRs are audited weekly. Use them only for live service impact.' } },
-          { title: 'Add the elements in scope', html: '<p>Paste NE IDs or circuit IDs, one per line, into <strong>Affected elements</strong>. CMS validates the format as you type.</p>', images: 1, callout: { type: 'tip', text: 'You can paste up to 500 IDs at once straight from a spreadsheet column.' } },
-          { title: 'Set the proposed window and submit', html: '<p>Pick a start and end time in IST. Add the business justification, then select <strong>Submit</strong>. Note the CR number shown in the confirmation banner.</p>', images: 1 },
-        ],
-        related: ['run-inventory-check'],
-      },
-      {
-        title: 'Run the inventory check',
-        slug: 'run-inventory-check',
-        summary: 'Match every element in the CR against inventory and resolve mismatches.',
-        prerequisites: ['Planner role', 'CR in Submitted status'],
-        expectedOutcome: 'All elements show a green "Matched" badge and the inventory snapshot is attached to the CR.',
-        steps: [
-          { title: 'Pick the CR from your queue', html: '<p>Open <strong>My Queue › Awaiting validation</strong> and select the CR. The Inventory tab shows the automatic match result for each element.</p>', images: 1 },
-          { title: 'Review mismatches', html: '<p>Elements are tagged <strong>Matched</strong>, <strong>Not found</strong> or <strong>Attribute mismatch</strong>. Open each non-matched row to see which attribute differs.</p>', callout: { type: 'error', text: '"NE decommissioned" means the element is retired in inventory. Confirm with the Requester before raising a mismatch — the ID is often a typo.' } },
-          { title: 'Raise mismatch tickets', html: '<p>Select the affected rows and choose <strong>Report mismatch</strong>. The CR moves to <em>On hold — inventory</em> until the Inventory SPOC closes every ticket.</p>', images: 1 },
-          { title: 'Attach the snapshot', html: '<p>When all rows are matched, select <strong>Attach inventory snapshot</strong>. CMS stores a read-only copy of the element records at this moment.</p>' },
-        ],
-        related: ['run-collision-check'],
-      },
-      {
-        title: 'Run the collision check',
-        slug: 'run-collision-check',
-        summary: 'Detect other changes touching the same elements in an overlapping window.',
-        prerequisites: ['Inventory check complete'],
-        expectedOutcome: 'No unresolved collisions; the CR is marked Inventory Validated.',
-        steps: [
-          { title: 'Start the collision check', html: '<p>On the CR, open the <strong>Collisions</strong> tab and select <strong>Run check</strong>. Results appear in under a minute for most CRs.</p>', images: 1 },
-          { title: 'Resolve each collision', html: '<p>For each conflicting CR, either agree a new window with its owner or merge the work into one CR. Record the decision in the collision comment field.</p>', callout: { type: 'tip', text: 'Use "Message owner" to open a chat thread pre-filled with both CR numbers.' } },
-          { title: 'Mark as validated', html: '<p>Select <strong>Mark Inventory Validated</strong>. The CR moves to the Impact Analysis queue automatically.</p>' },
-        ],
-      },
-    ],
-  },
+  // Stage 1 is written from the CHM CRQ Workflow SOP (plan-inventory.ts).
+  planInventoryModule,
   {
     title: 'Impact Analysis',
     slug: 'impact-analysis',

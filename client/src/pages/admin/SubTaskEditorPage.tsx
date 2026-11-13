@@ -3,7 +3,7 @@ import { ChevronDown, ImagePlus, Plus } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { subTaskInputSchema, type CalloutType } from '@cms/shared';
+import { modulePath, subTaskInputSchema, type CalloutType } from '@cms/shared';
 import { errorMessage, get, patch, post, put } from '@/api/client';
 import { useModules } from '@/api/queries';
 import type { Media, RichText, SubTaskEditPayload } from '@/api/types';
@@ -246,7 +246,7 @@ export function SubTaskEditorPage() {
         updatedAt={data?.updatedAt}
         updatedBy={data?.updatedByName}
         historyPath={isNew ? undefined : `/admin/versions/subtask/${id}`}
-        viewPath={isNew || !data?.module ? undefined : `/modules/${data.module.slug}/${data.snapshot.slug}${data.hasPendingDraft ? '?preview=1' : ''}`}
+        viewPath={isNew || !data?.module ? undefined : `${modulePath(data.module.section, data.module.slug, data.snapshot.slug)}${data.hasPendingDraft ? '?preview=1' : ''}`}
       />
 
       <div className="space-y-6">
@@ -265,7 +265,7 @@ export function SubTaskEditorPage() {
             <Field label="Title" htmlFor="s-title" error={err('title')}>
               <Input id="s-title" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value, slug: slugTouched ? f.slug : slugify(e.target.value) }))} />
             </Field>
-            <Field label="Address" htmlFor="s-slug" hint={`/modules/${currentModule?.slug ?? '…'}/${form.slug || '…'}`} error={err('slug')}>
+            <Field label="Address" htmlFor="s-slug" hint={modulePath(currentModule?.section, currentModule?.slug ?? '…', form.slug || '…')} error={err('slug')}>
               <Input
                 id="s-slug"
                 value={form.slug}

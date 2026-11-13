@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { moduleInputSchema, reorderSchema, statusSchema, type ModuleInput } from '@cms/shared';
+import { moduleInputSchema, modulePath, reorderSchema, statusSchema, type ModuleInput } from '@cms/shared';
 import { isAdmin, isStaff, requireRole } from '../middleware/auth.js';
 import { validateBody } from '../middleware/validate.js';
 import { Module, SubTask, Version } from '../models/index.js';
@@ -17,7 +17,7 @@ import { ah, forbidden, HttpError, notFound } from '../utils/http.js';
 
 export const modulesRouter = Router();
 
-const pathFor = (slug: string) => `/modules/${slug}`;
+const pathFor = (doc: { section?: string | null; slug: string }) => modulePath(doc.section, doc.slug);
 
 /** List modules in lifecycle order. Viewers get published modules only. */
 modulesRouter.get(
@@ -101,7 +101,7 @@ modulesRouter.post(
     const last = await Module.findOne({ section: snap.section }).sort({ order: -1 }).select('order').lean();
     const doc = await Module.create({ ...moduleDocFields(snap), order: (last?.order ?? 0) + 1, status: 'draft', updatedBy: req.user!.id });
     await saveVersion({ entityType: 'module', entityId: doc._id, snapshot: snap, user: req.user!, changeNote: (req.body as ModuleInput).changeNote || 'Created' });
-    await record({ user: req.user!, action: 'create', entityType: 'module', entityId: doc._id, entityTitle: doc.title, slug: doc.slug, path: pathFor(doc.slug) });
+    await record({ user: req.user!, action: 'create', entityType: 'module', entityId: doc._id, entityTitle: doc.title, slug: doc.slug, path: pathFor(doc) });
     res.status(201).json({ _id: doc._id, slug: doc.slug });
   }),
 );
@@ -125,7 +125,7 @@ modulesRouter.put(
       doc.pendingDraftAt = new Date();
       await doc.save();
       await saveVersion({ entityType: 'module', entityId: doc._id, snapshot: snap, user, changeNote: input.changeNote || 'Submitted for review' });
-      await record({ user, action: 'submit', entityType: 'module', entityId: doc._id, entityTitle: snap.title, slug: doc.slug, path: pathFor(doc.slug) });
+      await record({ user, action: 'submit', entityType: 'module', entityId: doc._id, entityTitle: snap.title, slug: doc.slug, path: pathFor(doc) });
       return res.json({ ok: true, pending: true });
     }
 
@@ -140,7 +140,7 @@ modulesRouter.put(
       entityId: doc._id,
       entityTitle: doc.title,
       slug: doc.slug,
-      path: pathFor(doc.slug),
+      path: pathFor(doc),
       visibleToViewers: doc.status === 'published',
     });
     res.json({ ok: true, pending: false, slug: doc.slug });
@@ -168,7 +168,7 @@ modulesRouter.patch(
       entityId: doc._id,
       entityTitle: doc.title,
       slug: doc.slug,
-      path: pathFor(doc.slug),
+      path: pathFor(doc),
       visibleToViewers: true,
     });
     res.json({ ok: true, status });
@@ -185,7 +185,7 @@ modulesRouter.post(
     if (!isAdmin(req.user) && String(doc.pendingDraftBy) !== req.user!.id) throw forbidden();
     doc.set({ pendingDraft: null, pendingDraftBy: null, pendingDraftAt: null });
     await doc.save();
-    await record({ user: req.user!, action: 'update', entityType: 'module', entityId: doc._id, entityTitle: doc.title, path: pathFor(doc.slug), meta: { discardedDraft: true } });
+    await record({ user: req.user!, action: 'update', entityType: 'module', entityId: doc._id, entityTitle: doc.title, path: pathFor(doc), meta: { discardedDraft: true } });
     res.json({ ok: true });
   }),
 );

@@ -16,6 +16,15 @@ export const SECTION_LABEL: Record<Section, string> = {
   configuration: 'Configuration & management',
 };
 
+/** Each section lives under its own address. */
+export const SECTION_BASE: Record<Section, string> = { lifecycle: '/modules', configuration: '/configuration' };
+
+/** Page address of a module, or of a sub-task when `subSlug` is given. */
+export function modulePath(section: string | null | undefined, slug: string, subSlug?: string) {
+  const base = SECTION_BASE[section === 'configuration' ? 'configuration' : 'lifecycle'];
+  return `${base}/${slug}${subSlug ? `/${subSlug}` : ''}`;
+}
+
 export const GUIDELINE_TYPES = ['must', 'should', 'note'] as const;
 export type GuidelineType = (typeof GUIDELINE_TYPES)[number];
 

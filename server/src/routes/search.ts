@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { Types } from 'mongoose';
 import { z } from 'zod';
+import { modulePath } from '@cms/shared';
 import { env } from '../config/env.js';
 import { isStaff } from '../middleware/auth.js';
 import { parseQuery } from '../middleware/validate.js';
@@ -22,6 +23,7 @@ export interface SearchDoc {
   breadcrumb: string[];
   path: string;
   status?: string;
+  section?: string;
 }
 
 const clip = (s: string, n = 1200) => (s.length > n ? s.slice(0, n) : s);
@@ -31,20 +33,21 @@ function flatten(mods: any[], subs: any[]): SearchDoc[] {
   const docs: SearchDoc[] = [];
   const modById = new Map(mods.map((m) => [String(m._id), m]));
   for (const m of mods) {
-    const base = { moduleId: String(m._id), moduleTitle: m.title, status: m.status };
-    docs.push({ ...base, id: `m-${m._id}`, type: 'module', title: m.title, text: clip(`${m.summary} ${htmlToText(m.e2eContent?.html)}`), breadcrumb: [m.title], path: `/modules/${m.slug}` });
+    const base = { moduleId: String(m._id), moduleTitle: m.title, status: m.status, section: m.section ?? 'lifecycle' };
+    const mp = modulePath(m.section, m.slug);
+    docs.push({ ...base, id: `m-${m._id}`, type: 'module', title: m.title, text: clip(`${m.summary} ${htmlToText(m.e2eContent?.html)}`), breadcrumb: [m.title], path: mp });
     (m.guidelines ?? []).forEach((g: any, i: number) =>
-      docs.push({ ...base, id: `g-${m._id}-${i}`, type: 'guideline', title: `${g.type === 'must' ? 'Must' : g.type === 'should' ? 'Should' : 'Note'}`, text: g.text, breadcrumb: [m.title, 'Guidelines'], path: `/modules/${m.slug}#guideline-${i + 1}` }),
+      docs.push({ ...base, id: `g-${m._id}-${i}`, type: 'guideline', title: `${g.type === 'must' ? 'Must' : g.type === 'should' ? 'Should' : 'Note'}`, text: g.text, breadcrumb: [m.title, 'Guidelines'], path: `${mp}#guideline-${i + 1}` }),
     );
     (m.faqs ?? []).forEach((f: any, i: number) =>
-      docs.push({ ...base, id: `f-${m._id}-${i}`, type: 'faq', title: f.q, text: f.a, breadcrumb: [m.title, 'FAQs'], path: `/modules/${m.slug}#faq-${i + 1}` }),
+      docs.push({ ...base, id: `f-${m._id}-${i}`, type: 'faq', title: f.q, text: f.a, breadcrumb: [m.title, 'FAQs'], path: `${mp}#faq-${i + 1}` }),
     );
   }
   for (const s of subs) {
     const m = modById.get(String(s.moduleId));
     if (!m) continue;
-    const base = { moduleId: String(m._id), moduleTitle: m.title, status: s.status };
-    const sp = `/modules/${m.slug}/${s.slug}`;
+    const base = { moduleId: String(m._id), moduleTitle: m.title, status: s.status, section: m.section ?? 'lifecycle' };
+    const sp = modulePath(m.section, m.slug, s.slug);
     docs.push({ ...base, id: `s-${s._id}`, type: 'subtask', title: s.title, text: clip(`${s.summary} ${s.expectedOutcome ?? ''}`), breadcrumb: [m.title, s.title], path: sp });
     (s.steps ?? []).forEach((st: any, i: number) =>
       docs.push({
@@ -61,7 +64,7 @@ function flatten(mods: any[], subs: any[]): SearchDoc[] {
   return docs;
 }
 
-const FIELDS = 'title slug summary status e2eContent.html guidelines faqs moduleId expectedOutcome steps.title steps.content.html steps.callout';
+const FIELDS = 'title slug section summary status e2eContent.html guidelines faqs moduleId expectedOutcome steps.title steps.content.html steps.callout';
 
 /**
  * Full flattened index for client-side fuzzy search (Fuse.js). The corpus of a process guide is

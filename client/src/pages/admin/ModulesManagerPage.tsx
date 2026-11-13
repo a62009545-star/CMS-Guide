@@ -3,7 +3,7 @@ import { ExternalLink, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { SECTIONS, SECTION_LABEL, type Section } from '@cms/shared';
+import { SECTION_LABEL, modulePath, type Section } from '@cms/shared';
 import { del, errorMessage, patch, post } from '@/api/client';
 import { qk, useModules } from '@/api/queries';
 import type { ModuleListItem } from '@/api/types';
@@ -17,8 +17,9 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useAuth } from '@/lib/auth';
 import { formatDate } from '@/lib/utils';
 
-export function ModulesManagerPage() {
-  useDocumentTitle('Modules');
+export function ModulesManagerPage({ section = 'lifecycle' }: { section?: Section }) {
+  const isConfig = section === 'configuration';
+  useDocumentTitle(isConfig ? SECTION_LABEL.configuration : 'Modules');
   const { data, isLoading } = useModules();
   const { isAdmin } = useAuth();
   const qc = useQueryClient();
@@ -56,12 +57,7 @@ export function ModulesManagerPage() {
     const list = items.filter((m) => (m.section ?? 'lifecycle') === section);
     return (
       <section key={section} aria-labelledby={`sec-${section}`} className="mb-10">
-        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 id={`sec-${section}`} className="text-lg font-semibold">{SECTION_LABEL[section]}</h2>
-          <Link to={`/admin/modules/new?section=${section}`} className="text-sm font-medium text-brand-fg hover:underline">
-            Add to {SECTION_LABEL[section]}
-          </Link>
-        </div>
+        <h2 id={`sec-${section}`} className="sr-only">{SECTION_LABEL[section]}</h2>
         {list.length === 0 ? (
           <p className="text-sm text-ink-muted">Nothing here yet.</p>
         ) : (
@@ -89,7 +85,7 @@ export function ModulesManagerPage() {
                   </div>
                   <StatusBadge status={m.status} pending={m.hasPendingDraft} />
                   <div className="flex gap-1">
-                    <Link to={`/modules/${m.slug}`} className="grid h-8 w-8 place-items-center rounded-md text-ink-muted hover:bg-surface-sunken" aria-label={`View ${m.title}`}>
+                    <Link to={modulePath(m.section, m.slug)} className="grid h-8 w-8 place-items-center rounded-md text-ink-muted hover:bg-surface-sunken" aria-label={`View ${m.title}`}>
                       <ExternalLink className="h-4 w-4" />
                     </Link>
                     <Link to={`/admin/modules/${m._id}`} className="inline-flex h-8 items-center rounded-md px-2.5 text-sm font-medium hover:bg-surface-sunken">
@@ -131,17 +127,17 @@ export function ModulesManagerPage() {
     <div>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Modules</h1>
-          <p className="mt-1 text-sm text-ink-muted">{isAdmin ? 'Drag to change the order within each section.' : 'Lifecycle stages and configuration topics.'}</p>
+          <h1 className="text-2xl font-bold">{isConfig ? SECTION_LABEL.configuration : 'Modules'}</h1>
+          <p className="mt-1 text-sm text-ink-muted">{isConfig ? 'Topics about using CHM itself, shown in their own area of the guide.' : 'The stages of the CMS lifecycle.'}{isAdmin ? ' Drag to change the order.' : ''}</p>
         </div>
-        <Link to="/admin/modules/new" className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-white hover:bg-brand-strong">
-          <Plus className="h-4 w-4" /> New module
+        <Link to={`/admin/modules/new?section=${section}`} className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-white hover:bg-brand-strong">
+          <Plus className="h-4 w-4" /> {isConfig ? 'New topic' : 'New module'}
         </Link>
       </div>
       {isLoading ? (
         <Skeleton className="h-80" />
       ) : (
-        <>{SECTIONS.map(renderSection)}</>
+        renderSection(section)
       )}
     </div>
   );

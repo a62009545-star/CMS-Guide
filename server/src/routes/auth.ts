@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import rateLimit from 'express-rate-limit';
 import { Types } from 'mongoose';
 import { z } from 'zod';
-import { loginSchema } from '@cms/shared';
+import { loginSchema, modulePath } from '@cms/shared';
 import { clearAuthCookie, requireAuth, setAuthCookie, signToken } from '../middleware/auth.js';
 import { validateBody } from '../middleware/validate.js';
 import { Module, SubTask, User } from '../models/index.js';
@@ -83,17 +83,17 @@ authRouter.get(
     const modIds = bms.filter((b) => b.entityType === 'module').map((b) => b.entityId);
     const subIds = bms.filter((b) => b.entityType === 'subtask').map((b) => b.entityId);
     const [mods, subs] = await Promise.all([
-      Module.find({ _id: { $in: modIds }, status: 'published' }).select('title slug summary icon').lean(),
+      Module.find({ _id: { $in: modIds }, status: 'published' }).select('title slug section summary icon').lean(),
       SubTask.find({ _id: { $in: subIds }, status: 'published' }).select('title slug summary moduleId').lean(),
     ]);
-    const parentMods = await Module.find({ _id: { $in: subs.map((s) => s.moduleId) } }).select('title slug').lean();
+    const parentMods = await Module.find({ _id: { $in: subs.map((s) => s.moduleId) } }).select('title slug section').lean();
     const pm = new Map(parentMods.map((m) => [String(m._id), m]));
     res.json({
       items: [
-        ...mods.map((m) => ({ type: 'module', _id: m._id, title: m.title, summary: m.summary, path: `/modules/${m.slug}` })),
+        ...mods.map((m) => ({ type: 'module', _id: m._id, title: m.title, summary: m.summary, path: modulePath(m.section, m.slug) })),
         ...subs.map((s) => {
           const p = pm.get(String(s.moduleId));
-          return { type: 'subtask', _id: s._id, title: s.title, summary: s.summary, moduleTitle: p?.title, path: `/modules/${p?.slug}/${s.slug}` };
+          return { type: 'subtask', _id: s._id, title: s.title, summary: s.summary, moduleTitle: p?.title, path: modulePath(p?.section, p?.slug ?? '', s.slug) };
         }),
       ],
     });

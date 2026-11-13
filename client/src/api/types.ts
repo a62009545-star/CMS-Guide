@@ -107,7 +107,7 @@ export interface SubTaskDetail {
   expectedOutcome: string;
   steps: WalkthroughStep[];
   module: { _id: string; title: string; slug: string; order: number; icon: string; status: Status; section?: Section };
-  related: { _id: string; title: string; slug: string; summary: string; moduleSlug?: string; moduleTitle?: string }[];
+  related: { _id: string; title: string; slug: string; summary: string; moduleSlug?: string; moduleTitle?: string; path?: string }[];
   prev: NavLink | null;
   next: NavLink | null;
   updatedAt: string;
@@ -191,7 +191,7 @@ export interface ModuleEditPayload {
 export interface SubTaskEditPayload {
   _id: string;
   status: Status;
-  module: { _id: string; title: string; slug: string };
+  module: { _id: string; title: string; slug: string; section?: string };
   updatedAt: string;
   updatedByName: string | null;
   hasPendingDraft: boolean;
