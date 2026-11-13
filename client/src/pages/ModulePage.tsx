@@ -48,7 +48,7 @@ export function ModuleView({ slug: moduleSlug, embedded = false }: { slug: strin
   const { user, isStaff } = useAuth();
   const location = useLocation();
   useDocumentTitle(embedded ? 'CMS lifecycle' : m?.title);
-  useHashScroll(!!m && !embedded);
+  useHashScroll(!!m);
   const wrap = embedded ? '' : 'mx-auto max-w-6xl px-4 py-8 sm:px-8';
 
   if (isLoading) return <div className={wrap}><PageSkeleton /></div>;
@@ -56,8 +56,16 @@ export function ModuleView({ slug: moduleSlug, embedded = false }: { slug: strin
   if (error || !m) return <div className={wrap}><ErrorState message={(error as Error)?.message} onRetry={() => refetch()} /></div>;
 
   // Each section has its own address; send old or mistyped links to the right one.
-  const home = modulePath(m.section, m.slug);
-  if (!embedded && location.pathname !== home) return <Navigate replace to={{ pathname: home, search: location.search, hash: location.hash }} />;
+  // Lifecycle stages live on the CMS lifecycle page (/lifecycle?stage=…).
+  if (!embedded) {
+    if ((m.section ?? 'lifecycle') === 'lifecycle') {
+      const q = new URLSearchParams({ stage: m.slug });
+      if (preview) q.set('preview', '1');
+      return <Navigate replace to={{ pathname: '/lifecycle', search: `?${q}`, hash: location.hash }} />;
+    }
+    const home = modulePath(m.section, m.slug);
+    if (location.pathname !== home) return <Navigate replace to={{ pathname: home, search: location.search, hash: location.hash }} />;
+  }
   const editBase = `/admin/modules/${m._id}`;
   const isLifecycle = (m.section ?? 'lifecycle') === 'lifecycle';
   const unit = isLifecycle ? 'stage' : 'topic';

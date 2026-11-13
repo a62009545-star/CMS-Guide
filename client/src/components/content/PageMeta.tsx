@@ -62,7 +62,11 @@ export function StaffBar({ entityType, id, status, hasPendingDraft, pendingDraft
     onSuccess: (_d, s) => {
       toast.success(s === 'published' ? 'Published' : 'Unpublished');
       qc.invalidateQueries();
-      if (params.get('preview')) setParams({}, { replace: true });
+      if (params.get('preview')) {
+        const next = new URLSearchParams(params);
+        next.delete('preview');
+        setParams(next, { replace: true });
+      }
     },
     onError: (e) => toast.error(errorMessage(e)),
   });
@@ -74,7 +78,12 @@ export function StaffBar({ entityType, id, status, hasPendingDraft, pendingDraft
       {isPreview && <span className="text-xs text-ink-muted">Previewing changes from {pendingDraftByName ?? 'an editor'}</span>}
       <div className="ml-auto flex flex-wrap gap-2">
         {hasPendingDraft && (
-          <Button size="sm" variant="ghost" onClick={() => setParams(previewing ? {} : { preview: '1' }, { replace: true })}>
+          <Button size="sm" variant="ghost" onClick={() => {
+              const next = new URLSearchParams(params);
+              if (previewing) next.delete('preview');
+              else next.set('preview', '1');
+              setParams(next, { replace: true });
+            }}>
             {previewing ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             {previewing ? 'Show live version' : 'Preview pending changes'}
           </Button>

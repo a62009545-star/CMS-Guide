@@ -18,10 +18,11 @@ export const areaOf = (pathname: string) => (pathname.startsWith('/configuration
  */
 export function Sidebar({ collapsed, onToggle, onNavigate }: { collapsed: boolean; onToggle?: () => void; onNavigate?: () => void }) {
   const { lifecycle, configuration, isLoading } = useModuleSections();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const area = areaOf(pathname);
   const parts = pathname.split('/').filter(Boolean);
-  const currentSlug = parts[0] === 'modules' || parts[0] === 'configuration' ? parts[1] ?? null : null;
+  const currentSlug =
+    parts[0] === 'modules' || parts[0] === 'configuration' ? parts[1] ?? null : parts[0] === 'lifecycle' ? new URLSearchParams(search).get('stage') : null;
   const currentIdx = lifecycle.findIndex((m) => m.slug === currentSlug);
 
   const heading = (text: string, first = false) =>
@@ -70,7 +71,7 @@ export function Sidebar({ collapsed, onToggle, onNavigate }: { collapsed: boolea
                       />
                     )}
                     <NavLink
-                      to={`/modules/${m.slug}`}
+                      to={modulePath('lifecycle', m.slug)}
                       onClick={onNavigate}
                       title={collapsed ? m.title : undefined}
                       aria-current={active ? 'page' : undefined}

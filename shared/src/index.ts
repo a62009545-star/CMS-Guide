@@ -19,10 +19,22 @@ export const SECTION_LABEL: Record<Section, string> = {
 /** Each section lives under its own address. */
 export const SECTION_BASE: Record<Section, string> = { lifecycle: '/modules', configuration: '/configuration' };
 
-/** Page address of a module, or of a sub-task when `subSlug` is given. */
+/**
+ * Page address of a module, or of a sub-task when `subSlug` is given.
+ * A lifecycle stage is shown on the CMS lifecycle page (/lifecycle?stage=…); its walkthroughs keep
+ * their own pages under /modules/<stage>/<walkthrough>.
+ */
 export function modulePath(section: string | null | undefined, slug: string, subSlug?: string) {
-  const base = SECTION_BASE[section === 'configuration' ? 'configuration' : 'lifecycle'];
-  return `${base}/${slug}${subSlug ? `/${subSlug}` : ''}`;
+  if (section === 'configuration') return `${SECTION_BASE.configuration}/${slug}${subSlug ? `/${subSlug}` : ''}`;
+  if (!subSlug) return `/lifecycle?stage=${encodeURIComponent(slug)}`;
+  return `${SECTION_BASE.lifecycle}/${slug}/${subSlug}`;
+}
+
+/** Add ?preview=1 (or &preview=1) to a page address, keeping any #anchor. */
+export function withPreview(path: string, on = true) {
+  if (!on) return path;
+  const [base, hash] = path.split('#');
+  return `${base}${base.includes('?') ? '&' : '?'}preview=1${hash ? `#${hash}` : ''}`;
 }
 
 export const GUIDELINE_TYPES = ['must', 'should', 'note'] as const;

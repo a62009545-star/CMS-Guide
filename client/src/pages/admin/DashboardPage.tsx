@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { withPreview } from '@cms/shared';
 import { get } from '@/api/client';
 import type { AuditEntry } from '@/api/types';
 import { Badge } from '@/components/ui/Badge';
@@ -62,7 +63,7 @@ export function DashboardPage() {
             <ul className="divide-y divide-line">
               {data.pending.map((p) => (
                 <li key={p._id}>
-                  <Link to={`${p.path}${p.pendingReview ? '?preview=1' : ''}`} className="flex items-start justify-between gap-3 px-5 py-3.5 hover:bg-surface-sunken">
+                  <Link to={withPreview(p.path, p.pendingReview)} className="flex items-start justify-between gap-3 px-5 py-3.5 hover:bg-surface-sunken">
                     <span className="min-w-0">
                       <span className="block truncate font-medium">{p.title}</span>
                       <span className="block text-xs text-ink-muted">

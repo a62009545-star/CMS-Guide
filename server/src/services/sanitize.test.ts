@@ -37,3 +37,15 @@ test('embed URLs are normalised and restricted', () => {
 test('changedFields reports top-level differences', () => {
   assert.deepEqual(changedFields({ a: 1, b: [1] }, { a: 1, b: [2], c: 'x' }), ['b', 'c']);
 });
+
+test('modulePath sends lifecycle stages to the lifecycle page', async () => {
+  const { modulePath, withPreview } = await import('@cms/shared');
+  assert.equal(modulePath('lifecycle', 'plan-inventory-validation'), '/lifecycle?stage=plan-inventory-validation');
+  assert.equal(modulePath(undefined, 'mop-creation'), '/lifecycle?stage=mop-creation');
+  assert.equal(modulePath('lifecycle', 'mop-creation', 'attach-rollback-plan'), '/modules/mop-creation/attach-rollback-plan');
+  assert.equal(modulePath('configuration', 'roster'), '/configuration/roster');
+  assert.equal(modulePath('configuration', 'roster', 'view-the-team-roster'), '/configuration/roster/view-the-team-roster');
+  assert.equal(withPreview('/lifecycle?stage=x'), '/lifecycle?stage=x&preview=1');
+  assert.equal(withPreview('/configuration/roster#faq-1'), '/configuration/roster?preview=1#faq-1');
+  assert.equal(withPreview('/a', false), '/a');
+});

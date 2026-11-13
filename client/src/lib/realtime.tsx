@@ -35,10 +35,12 @@ export function RealtimeBridge() {
       const path = pathRef.current;
       const parts = path.split('/').filter(Boolean); // ['modules' | 'configuration', moduleSlug, subSlug?]
       const inContent = parts[0] === 'modules' || parts[0] === 'configuration';
+      const stageParam = new URLSearchParams(window.location.search).get('stage');
+      const onLifecycleStage = parts[0] === 'lifecycle' && !!stageParam && (e.entityType === 'module' ? e.slug === stageParam : e.moduleSlug === stageParam);
       const onModule = inContent && parts.length === 2 && e.entityType === 'module' && e.slug === parts[1];
       const onSubTask = inContent && parts.length === 3 && e.entityType === 'subtask' && e.slug === parts[2] && e.moduleSlug === parts[1];
       const onParentModule = inContent && parts.length === 2 && e.entityType === 'subtask' && e.moduleSlug === parts[1];
-      if (onModule || onSubTask) {
+      if (onModule || onSubTask || onLifecycleStage) {
         toast(`This page was updated by ${e.by.name}`, { description: 'You are now seeing the latest version.' });
       } else if (onParentModule) {
         toast(`${e.by.name} updated “${e.title}”`, { description: 'The sub-task list on this page is up to date.' });

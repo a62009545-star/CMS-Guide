@@ -67,7 +67,7 @@ export function guideFor(pathname: string): PageGuide | null {
     };
   }
 
-  if ((parts[0] === 'modules' || parts[0] === 'configuration') && parts.length === 2) {
+  if (((parts[0] === 'modules' || parts[0] === 'configuration') && parts.length === 2) || parts[0] === 'lifecycle') {
     return {
       key: 'module',
       greeting: 'This page explains one part of CMS: a lifecycle stage or a configuration topic. Want a quick tour of how it’s laid out?',

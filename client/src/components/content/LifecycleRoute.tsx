@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { modulePath } from '@cms/shared';
 import type { ModuleListItem } from '@/api/types';
 import { ModuleIcon } from '@/components/ui/Icon';
 import { cn } from '@/lib/utils';
@@ -22,7 +23,7 @@ function Item({
       {children}
     </button>
   ) : (
-    <Link to={`/modules/${m.slug}`} className={className}>
+    <Link to={modulePath(m.section, m.slug)} className={className}>
       {children}
     </Link>
   );

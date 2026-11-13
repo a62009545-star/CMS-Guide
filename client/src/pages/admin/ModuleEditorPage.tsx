@@ -3,7 +3,7 @@ import { ImagePlus, Plus } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { GUIDELINE_TYPES, SECTIONS, SECTION_LABEL, moduleInputSchema, modulePath, type Section } from '@cms/shared';
+import { GUIDELINE_TYPES, SECTIONS, SECTION_LABEL, moduleInputSchema, modulePath, withPreview, type Section } from '@cms/shared';
 import { errorMessage, get, patch, post, put } from '@/api/client';
 import type { Media, ModuleEditPayload } from '@/api/types';
 import { MediaView } from '@/components/content/Media';
@@ -113,7 +113,7 @@ export function ModuleEditorPage() {
         updatedAt={data?.updatedAt}
         updatedBy={data?.updatedByName}
         historyPath={isNew ? undefined : `/admin/versions/module/${id}`}
-        viewPath={isNew || !data ? undefined : `${modulePath(data.snapshot.section, data.snapshot.slug)}${data.hasPendingDraft ? '?preview=1' : ''}`}
+        viewPath={isNew || !data ? undefined : withPreview(modulePath(data.snapshot.section, data.snapshot.slug), data.hasPendingDraft)}
       />
 
       <div className="space-y-6">
