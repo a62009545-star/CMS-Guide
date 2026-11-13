@@ -15,6 +15,8 @@ const COLLAPSE_KEY = 'cms-sidebar-collapsed';
 function AreaTabs({ className, onNavigate, stacked }: { className?: string; onNavigate?: () => void; stacked?: boolean }) {
   const { pathname } = useLocation();
   const area = areaOf(pathname);
+  const isHome = pathname === '/';
+  const inLifecycle = pathname.startsWith('/lifecycle') || pathname.startsWith('/modules');
   const tab = (active: boolean) =>
     stacked
       ? cn('block rounded-lg px-3 py-2.5 text-sm font-medium', active ? 'bg-brand-soft text-ink' : 'text-ink-muted hover:bg-surface-sunken hover:text-ink')
@@ -24,7 +26,10 @@ function AreaTabs({ className, onNavigate, stacked }: { className?: string; onNa
     );
   return (
     <nav aria-label="Guide areas" className={cn(stacked ? 'flex flex-col gap-1' : 'flex items-stretch gap-5', className)} data-guide={stacked ? undefined : 'areas'}>
-      <NavLink to="/" onClick={onNavigate} className={() => tab(area === 'lifecycle' && !pathname.startsWith('/admin'))} aria-current={area === 'lifecycle' ? 'page' : undefined}>
+      <NavLink to="/" onClick={onNavigate} className={() => tab(isHome)} aria-current={isHome ? 'page' : undefined}>
+        Home
+      </NavLink>
+      <NavLink to="/lifecycle" onClick={onNavigate} className={() => tab(inLifecycle)} aria-current={inLifecycle ? 'page' : undefined}>
         CMS lifecycle
       </NavLink>
       <NavLink to="/configuration" onClick={onNavigate} className={() => tab(area === 'configuration')} aria-current={area === 'configuration' ? 'page' : undefined}>
@@ -34,7 +39,7 @@ function AreaTabs({ className, onNavigate, stacked }: { className?: string; onNa
   );
 }
 
-export function AppShell({ hideSidebar = false }: { hideSidebar?: boolean }) {
+export function AppShell() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [drawer, setDrawer] = useState(false);
   const [collapsed, setCollapsed] = useState(() => {
@@ -45,6 +50,12 @@ export function AppShell({ hideSidebar = false }: { hideSidebar?: boolean }) {
     }
   });
   const location = useLocation();
+  const parts = location.pathname.split('/').filter(Boolean);
+  const isLanding = parts.length === 0;
+  // Walkthrough pages bring their own step navigation, so the global sidebar would be a second column.
+  const isWalkthrough = (parts[0] === 'modules' || parts[0] === 'configuration') && parts.length === 3;
+  // The lifecycle overview page is itself the list of stages, so the sidebar would repeat it.
+  const hideSidebar = isLanding || isWalkthrough || parts[0] === 'lifecycle';
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
 
   useEffect(() => {
@@ -78,14 +89,14 @@ export function AppShell({ hideSidebar = false }: { hideSidebar?: boolean }) {
       </a>
       <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/85">
         <div className="flex h-16 items-center gap-3 px-3 sm:px-5">
-          {!hideSidebar && (
+          {(
             <button data-guide="menu" onClick={() => setDrawer(true)} className="rounded-lg p-2 text-ink-muted hover:bg-surface-sunken lg:hidden" aria-label="Open menu">
               <Menu className="h-5 w-5" />
             </button>
           )}
           <Logo />
           <AreaTabs className="ml-2 hidden h-16 lg:flex xl:ml-4" />
-          <div className="flex flex-1 justify-center px-2">
+          <div className={cn('flex flex-1 justify-center px-2', isLanding && 'invisible')} aria-hidden={isLanding || undefined}>
             <button
               data-guide="search"
               onClick={() => setPaletteOpen(true)}

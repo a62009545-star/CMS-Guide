@@ -132,17 +132,24 @@ export function SubTaskPage() {
   const editBase = `/admin/subtasks/${s._id}`;
 
   return (
-    <div ref={topRef} className="mx-auto flex max-w-6xl gap-10 px-4 py-8 sm:px-8">
-      <aside data-guide="step-rail" className="hidden w-60 shrink-0 lg:block">
-        <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pb-4">
-          <Link to={modHome} className="mb-5 inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink">
-            <ArrowLeft className="h-4 w-4" /> {s.module.title}
+    <div ref={topRef} className="flex">
+      <aside data-guide="step-rail" className="sticky top-16 hidden h-[calc(100vh-4rem)] w-[288px] shrink-0 overflow-y-auto border-r border-line bg-surface lg:block">
+        <div className="px-5 pb-8 pt-6">
+          <Link to={modHome} className="group flex items-start gap-3 rounded-lg">
+            <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-sunken text-ink-muted group-hover:text-brand-fg">
+              <ArrowLeft className="h-4 w-4" aria-hidden />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-xs text-ink-muted">{s.module.section === 'configuration' ? 'Configuration & management' : `Stage ${s.module.order}`}</span>
+              <span className="block text-sm font-semibold leading-snug group-hover:text-brand-fg">{s.module.title}</span>
+            </span>
           </Link>
+          <div className="my-5 h-px bg-line" />
           <StepRail steps={s.steps} active={active} seen={seen} onJump={jump} />
         </div>
       </aside>
 
-      <article className="min-w-0 flex-1 pb-20">
+      <article className="mx-auto min-w-0 max-w-[820px] flex-1 px-4 pb-20 pt-8 sm:px-8 lg:px-12">
         <StaffBar
           entityType="subtask"
           id={s._id}
@@ -159,7 +166,7 @@ export function SubTaskPage() {
               {s.module.section === 'configuration' ? (
                 <Link to="/configuration" className="hover:text-ink">Configuration &amp; management</Link>
               ) : (
-                <Link to="/" className="hover:text-ink">Lifecycle</Link>
+                <Link to="/lifecycle" className="hover:text-ink">Lifecycle</Link>
               )}
             </li>
             <li aria-hidden>›</li>
@@ -210,17 +217,24 @@ export function SubTaskPage() {
           </section>
         )}
 
-        <ol className="mt-10 space-y-6">
+        <ol className="relative mt-12">
           {s.steps.map((st, i) => (
-            <li key={st._id} id={`step-${i + 1}`} data-index={i} className="card scroll-mt-24 p-5 sm:p-7">
+            <li key={st._id} id={`step-${i + 1}`} data-index={i} className="relative scroll-mt-24 pb-12 pl-12 last:pb-2 sm:pl-14">
+              {/* The line that joins the steps; red up to the step you are reading. */}
+              {i < n - 1 && <span aria-hidden className={cn('absolute bottom-0 left-[15px] top-9 w-0.5', i < active ? 'bg-brand' : 'bg-line')} />}
+              <span
+                className={cn(
+                  'tabular absolute left-0 top-0 grid h-8 w-8 place-items-center rounded-full text-sm font-semibold ring-4 ring-surface-sunken',
+                  i <= active ? 'bg-brand text-white' : 'border-2 border-line bg-surface text-ink-muted',
+                )}
+              >
+                {i + 1}
+              </span>
               <div className="flex items-start justify-between gap-4">
-                <h2 className="flex items-start gap-3 text-xl font-semibold">
-                  <span className="tabular grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand text-sm font-semibold text-white">{i + 1}</span>
-                  <span className="pt-0.5">{st.title}</span>
-                </h2>
+                <h2 className="pt-0.5 text-xl font-semibold leading-snug">{st.title}</h2>
                 <SectionEdit to={`${editBase}?section=step-${i + 1}`} label={`Edit step ${i + 1}`} />
               </div>
-              <div className="mt-4 space-y-5 sm:pl-11">
+              <div className="mt-3 space-y-5">
                 <RichContent html={st.content.html} />
                 <MediaGallery items={st.media} />
                 {st.callout?.text && <Callout type={st.callout.type} text={st.callout.text} />}

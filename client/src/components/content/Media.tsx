@@ -35,11 +35,12 @@ export function MediaView({ media, className, onOpen }: { media: Media; classNam
       </figure>
     );
   }
-  const img = <img src={media.url} alt={media.altText} loading="lazy" decoding="async" className="h-full w-full rounded-lg border border-line bg-surface-sunken object-cover" />;
+  // Tall screenshots (menus, side panels) keep their shape instead of stretching to full width.
+  const img = <img src={media.url} alt={media.altText} loading="lazy" decoding="async" className="max-h-[520px] w-auto max-w-full rounded-lg border border-line bg-surface-sunken object-contain" />;
   return (
     <figure className={className}>
       {onOpen ? (
-        <button onClick={onOpen} className="block w-full cursor-zoom-in rounded-lg" aria-label={`Enlarge image${media.caption ? `: ${media.caption}` : ''}`}>
+        <button onClick={onOpen} className="block max-w-full cursor-zoom-in rounded-lg" aria-label={`Enlarge image${media.caption ? `: ${media.caption}` : ''}`}>
           {img}
         </button>
       ) : (

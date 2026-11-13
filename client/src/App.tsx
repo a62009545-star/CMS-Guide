@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from '@/lib/auth';
 import { RealtimeBridge } from '@/lib/realtime';
 import { BookmarksPage } from '@/pages/BookmarksPage';
 import { ConfigurationPage } from '@/pages/ConfigurationPage';
+import { LifecyclePage } from '@/pages/LifecyclePage';
 import { HomePage } from '@/pages/HomePage';
 import { LoginPage } from '@/pages/LoginPage';
 import { ModulePage } from '@/pages/ModulePage';
@@ -53,6 +54,7 @@ export function App() {
             }
           >
             <Route index element={<HomePage />} />
+            <Route path="lifecycle" element={<LifecyclePage />} />
             <Route path="modules/:moduleSlug" element={<ModulePage />} />
             <Route path="modules/:moduleSlug/:subSlug" element={<SubTaskPage />} />
             <Route path="configuration" element={<ConfigurationPage />} />

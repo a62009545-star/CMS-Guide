@@ -106,3 +106,6 @@ mark.hl { @apply rounded-sm bg-warning/40 px-0.5 text-inherit; }
 /* Deep-link target flash */
 .target-flash { animation: target-flash 1.6s ease-out; }
 @keyframes target-flash { 0% { box-shadow: 0 0 0 3px rgb(var(--brand) / 0.5); } 100% { box-shadow: 0 0 0 3px rgb(var(--brand) / 0); } }
+
+/* Landing backdrop: the route draws once */
+@keyframes nb-draw { from { stroke-dashoffset: 1400; } to { stroke-dashoffset: 0; } }

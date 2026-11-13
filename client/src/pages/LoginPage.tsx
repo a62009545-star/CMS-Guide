@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { loginSchema } from '@cms/shared';
 import { errorMessage } from '@/api/client';
+import { AirtelMark } from '@/components/brand/AirtelMark';
 import { Button } from '@/components/ui/Button';
 import { Field, Input } from '@/components/ui/Field';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
@@ -42,7 +43,7 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-surface-sunken px-4 py-12">
       <div className="w-full max-w-sm">
-        <img src="/logo.svg" alt="" className="h-11 w-11" />
+        <AirtelMark className="h-12 w-12 text-brand" title="Airtel" />
         <h1 className="mt-6 text-2xl font-semibold">Sign in to CMS Process Guide</h1>
         <p className="mt-1.5 text-sm text-ink-muted">How every stage of the Change Management System works, step by step.</p>
         <form onSubmit={submit} noValidate className="card mt-8 space-y-4 p-6">

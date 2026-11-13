@@ -157,6 +157,13 @@ After each content change the API emits `content:changed` over Socket.io (authen
 - Helmet sets a strict Content Security Policy; video embeds are limited to YouTube, Vimeo and SharePoint.
 - Changing a user's role or password signs them out everywhere (token version check).
 
+## Pages
+
+- **Home** (`/`): a central search with instant results, then Recently updated, Your bookmarks and Quick links.
+- **CMS lifecycle** (`/lifecycle`): the seven stages as one route. Selecting a stage shows its guide and walkthrough steps below (`?stage=<slug>`); each stage also has a full page with guidelines and FAQs.
+- **Configuration & management** (`/configuration`).
+- Walkthrough pages have a single left column with the stage, progress and steps.
+
 ## Content areas
 
 The guide has two separate areas, switched with the tabs in the header. Each has its own landing page, addresses, sidebar and admin tab.
@@ -186,7 +193,7 @@ Content added after the first deploy is applied by named, one-time migrations in
 ## Branding
 
 - Colours are CSS variables in `client/src/styles/index.css`. The primary red is set to `#E40000`, the commonly published Airtel red. **Confirm it against the official brand guidelines** and change `--brand` (and `--brand-strong` for hover) in one place.
-- Replace `client/public/logo.svg` with the official logo. If the logo includes the wordmark, remove the text next to it in `client/src/components/layout/Logo.tsx`.
+- The Airtel mark (from Simple Icons) is in `client/src/components/brand/AirtelMark.tsx` and `client/public/logo.svg`. To use the official logo lockup instead, add the file to `client/public/` and update `client/src/components/layout/Logo.tsx`.
 - Typeface is Inter (Google Fonts). To use a brand font, add it in `client/index.html` and update `fontFamily.sans` in `client/tailwind.config.ts`.
 - Seed images in `client/public/placeholders` are placeholder mock-ups. Replace them through the Media library.
 
