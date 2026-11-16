@@ -5,7 +5,7 @@ import { env } from '../config/env.js';
 import { AuditLog, Media, Migration, Module, SubTask, User, Version, type UserDoc } from '../models/index.js';
 import { moduleSearchText, moduleToSnapshot, subTaskSearchText, subTaskToSnapshot, type ModuleSnapshot, type SubTaskSnapshot } from '../services/content.js';
 import { saveVersion } from '../services/versioning.js';
-import { configurationModules, reschedulingModule, userManagementModule } from './configuration.js';
+import { configurationModules, reschedulingModule, teamReportsModule, userManagementModule } from './configuration.js';
 import { RESCHEDULE_NOTES } from './rescheduling-notes.js';
 import { modules as lifecycleModules, type SeedModule, type Shot } from './content.js';
 import { OLD_SIGNED_IN, planInventoryModule } from './plan-inventory.js';
@@ -282,6 +282,22 @@ const MIGRATIONS: { name: string; run: (admin: UserDoc) => Promise<void> }[] = [
         await doc.save();
         await saveVersion({ entityType: 'module', entityId: doc._id, snapshot: snap, user: { id: String(admin._id), name: admin.name, email: admin.email, role: 'admin' }, changeNote: 'Added rescheduling note' });
       }
+    },
+  },
+  {
+    // User Log Details and Audit Log walkthroughs; new Team Reports topic, placed after Roster.
+    name: '2026-11-user-logs-team-reports',
+    run: async (admin) => {
+      if (await Module.exists({ slug: userManagementModule.slug })) {
+        await seedModules([userManagementModule], admin, { updateExisting: true, changeNote: 'Added User Log Details and Audit Log' });
+      }
+      if (await Module.exists({ slug: teamReportsModule.slug })) return;
+      await seedModules([teamReportsModule], admin);
+      const config = await Module.find({ section: 'configuration' }).sort({ order: 1 }).select('slug').lean();
+      const slugs = config.map((c) => c.slug).filter((x) => x !== teamReportsModule.slug);
+      const at = slugs.indexOf('roster');
+      slugs.splice(at >= 0 ? at + 1 : slugs.length, 0, teamReportsModule.slug);
+      await Module.bulkWrite(slugs.map((slug, i) => ({ updateOne: { filter: { slug }, update: { $set: { order: i + 1 } } } })));
     },
   },
 ];

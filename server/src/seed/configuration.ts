@@ -112,6 +112,11 @@ ${callout('info', 'Use <strong>Back</strong> at any step to change something you
 <li><strong>More</strong> (⋮) has <strong>Permissions</strong>, <strong>Reset Password</strong> and <strong>Remove User</strong>.</li>
 </ul>
 ${callout('warning', 'The OLM ID and organisation hierarchy cannot be changed after a user is added. Check them carefully on the Review step.')}
+<h3>User Log Details and Audit Log</h3>
+<ul>
+<li><strong>User Log Details</strong> lists login sessions for a team and date range: user, login time, logout time, duration and status.</li>
+<li><strong>Audit Log</strong> lists every state-changing action in CHM, such as sign-ins and shift changes, with the time it was recorded: date and time, module, sub module, action, actor, affected user and remark. It is read-only.</li>
+</ul>
 `,
   flow: [
     ['Open User Management', 'Side menu › User Management'],
@@ -131,6 +136,7 @@ ${callout('warning', 'The OLM ID and organisation hierarchy cannot be changed af
     ['must', 'Use Remove User only for someone who should no longer have access to CMS.'],
     ['note', 'Search the User Directory by name, OLM ID or email first, to make sure the person has not already been added.'],
     ['note', 'Fields marked with an asterisk (*) are required when adding or editing a user.'],
+    ['note', 'The Audit Log is read-only. Use it to see who changed what and when; it cannot be edited.'],
   ],
   faqs: [
     ['What is the difference between Team User and Other User?', 'A Team User is a member of a team in Team Management. An Other User needs access to CMS but is not a member of a team.'],
@@ -140,6 +146,8 @@ ${callout('warning', 'The OLM ID and organisation hierarchy cannot be changed af
     ['How do I see what a user is allowed to do?', 'Click the eye icon and open the Permissions tab, or choose Permissions from the ⋮ menu. It lists every permission the user’s role grants, for example All CRQs · View or Dashboard · Create.'],
     ['Can I change a user’s OLM ID or team?', 'No. The OLM ID and organisation hierarchy are locked when you edit a user. Every other detail can be changed.'],
     ['A user forgot their password. What do I do?', 'Open the ⋮ menu on their row and choose Reset Password.'],
+    ['How do I check when someone signed in?', 'Open the User Log Details tab, select the team and date range, and click Apply Filters. The Login Sessions table shows each login and logout time and the duration.'],
+    ['How do I find out who changed something?', 'Open the Audit Log tab and filter by module, sub module, action, actor, affected user or date. Each row shows who made the change (the actor), who it affected and a remark describing it.'],
   ],
   subTasks: [
     {
@@ -259,6 +267,187 @@ ${callout('warning', 'The OLM ID and organisation hierarchy cannot be changed af
         },
       ],
       related: ['view-a-user', 'remove-a-team-member'],
+    },
+    {
+      title: 'Check login sessions',
+      slug: 'check-login-sessions',
+      summary: 'Use the User Log Details tab to see when people in a team signed in and out.',
+      prerequisites: [SIGNED_IN, 'Access to User Management'],
+      expectedOutcome: 'The Login Sessions table lists the team’s sessions for the dates you chose.',
+      steps: [
+        {
+          title: 'Open User Log Details',
+          html: '<p>In <strong>User Management</strong>, click the <strong>User Log Details</strong> tab at the top.</p>',
+        },
+        {
+          title: 'Choose the team and dates, then apply',
+          html: `<p>Select <strong>${TEAM_PATH}</strong>, then set the <strong>Start Date</strong> and <strong>End Date</strong>. Click <strong>Apply Filters</strong>.</p>`,
+          shots: [um('user-log-details', 'User Log Details tab with Vertical, Team Function, Domain and Sub Domain filters, Start Date, End Date, Apply Filters and an empty Login Sessions table')],
+          callout: { type: 'tip', text: 'Until you apply filters the table shows “No data yet”. That is expected.' },
+        },
+        {
+          title: 'Read the sessions',
+          html: '<p>The <strong>Login Sessions</strong> table shows each user’s <strong>login time</strong>, <strong>logout time</strong>, <strong>duration</strong> and <strong>status</strong>. Search for a person by name or ID with the search box, or download the list with the download icon.</p>',
+        },
+      ],
+      related: ['search-the-audit-log'],
+    },
+    {
+      title: 'Search the Audit Log',
+      slug: 'search-the-audit-log',
+      summary: 'Find who changed what, and when, in the read-only Audit Log.',
+      prerequisites: [SIGNED_IN, 'Access to User Management'],
+      expectedOutcome: 'You find the change you were looking for, with who made it and when.',
+      steps: [
+        {
+          title: 'Open the Audit Log',
+          html: '<p>In <strong>User Management</strong>, click the <strong>Audit Log</strong> tab. It lists every state-changing action in CHM, newest first, with the total number of records at the top right.</p>',
+          shots: [um('audit-log', 'Audit Log with filters and rows showing date and time, module, sub module, action, actor, affected user and remark')],
+        },
+        {
+          title: 'Filter the log',
+          html: '<p>Narrow the list with:</p><ul><li>the <strong>search</strong> box (action, remark, module or user);</li><li><strong>Module</strong>, <strong>Sub Module</strong> and <strong>Action</strong>;</li><li><strong>Actor</strong> (who did it) and <strong>Affected User</strong> (who it was done to);</li><li><strong>From</strong> and <strong>To</strong> dates.</li></ul><p>Click <strong>Clear</strong> to remove all filters.</p>',
+        },
+        {
+          title: 'Read an entry',
+          html: '<p>Each row shows the <strong>date and time</strong>, the <strong>module</strong> and <strong>sub module</strong> (for example Roster Management › Shift Change), the <strong>action</strong> (for example LOGIN or UPDATE), the <strong>actor</strong>, the <strong>affected user</strong> and a <strong>remark</strong> describing the change.</p>',
+          callout: { type: 'tip', text: 'Use the refresh icon at the top right to load the latest entries.' },
+        },
+      ],
+      related: ['check-login-sessions', 'view-a-user'],
+    },
+  ],
+};
+
+/** Team Reports: the CHM "User Reports" page, written from its screenshots. */
+const tr = (name: string, alt: string) => shot('team-reports', name, alt);
+export const teamReportsModule: SeedModule = {
+  title: 'Team Reports',
+  slug: 'team-reports',
+  section: 'configuration',
+  icon: 'file-spreadsheet',
+  summary: 'Reports on your team for a date range: WFH and WFO status, shift swaps, shift changes and CRQs, each exportable to Excel.',
+  hero: tr('wfh-wfo-status', 'User Reports page on the WFH & WFO Status tab, listing employees with their work mode, domain, sub domain and shift date'),
+  e2e: `
+<p>Team Reports show what happened in your team over a date range. In CHM the page is called <strong>User Reports</strong>. Every report can be exported to Excel.</p>
+${facts([
+  ['Page in CHM', '<strong>User Reports</strong>'],
+  ['Choose', 'A <strong>Start Date</strong> and <strong>End Date</strong>, then click <strong>Show</strong>'],
+  ['Reports (tabs)', '<strong>WFH &amp; WFO Status</strong>, <strong>Shift Swap Report</strong>, <strong>Shift Change Report</strong> and <strong>CRQ Report</strong>'],
+  ['On every report', '<strong>Export Excel</strong>, column picker, full-screen view, rows per page and page navigation'],
+  ['Used with', 'Roster, where shift swaps and shift changes are made'],
+])}
+<h3>What each report shows</h3>
+<ul>
+<li><strong>WFH &amp; WFO Status</strong>: OLM ID, employee name, work mode, domain, sub domain and shift date.</li>
+<li><strong>Shift Swap Report</strong>: shift swaps between engineers in the date range.</li>
+<li><strong>Shift Change Report</strong>: OLM ID, employee name, domain, sub domain, shift date, shift name and further details of the change (scroll right to see them).</li>
+<li><strong>CRQ Report</strong>: CRQs for the date range.</li>
+</ul>
+`,
+  flow: [
+    ['Open User Reports', 'The Team Reports page in CHM'],
+    ['Pick dates', 'Start Date and End Date'],
+    ['Show', 'Load the reports'],
+    ['Choose a report', 'WFH & WFO, Shift Swap, Shift Change, CRQ'],
+    ['Export', 'Export Excel'],
+  ],
+  guidelines: [
+    ['must', 'Click Show after changing the Start Date or End Date. The reports do not update until you do.'],
+    ['should', 'Keep the date range short for large teams, so the report loads quickly and is easy to read.'],
+    ['note', 'Export Excel is unavailable when a report has no data for the selected dates.'],
+    ['note', 'Shift swaps and shift changes are made in Roster; these reports show what was changed.'],
+  ],
+  faqs: [
+    ['Why does a report say “No data available for the selected date range”?', 'Nothing of that type happened in those dates, for example no shift swaps. Choose a different date range and click Show again.'],
+    ['Why is Export Excel greyed out?', 'The report has no data for the selected dates. Change the dates and click Show.'],
+    ['Some columns are cut off. How do I see them?', 'Scroll the table sideways, use the column picker to choose which columns to show, or open the full-screen view.'],
+    ['Where are shift swaps and changes made?', 'In Roster. See “Use the roster tools” under Roster.'],
+  ],
+  subTasks: [
+    {
+      title: 'Run a team report',
+      slug: 'run-a-team-report',
+      summary: 'Open User Reports, choose the dates, click Show and pick a report.',
+      prerequisites: [SIGNED_IN],
+      expectedOutcome: 'The report you need is shown for the dates you chose.',
+      steps: [
+        {
+          title: 'Open User Reports',
+          html: '<p>Open the <strong>User Reports</strong> page in CHM. It opens on the <strong>WFH &amp; WFO Status</strong> tab.</p>',
+        },
+        {
+          title: 'Choose the dates and click Show',
+          html: '<p>Set the <strong>Start Date</strong> and <strong>End Date</strong>, then click <strong>Show</strong>.</p>',
+          shots: [tr('wfh-wfo-status', 'Start Date, End Date and Show at the top of User Reports, with the report tabs below')],
+        },
+        {
+          title: 'Pick a report',
+          html: '<p>Click a tab: <strong>WFH &amp; WFO Status</strong>, <strong>Shift Swap Report</strong>, <strong>Shift Change Report</strong> or <strong>CRQ Report</strong>. If nothing happened in those dates, the report says “No data available for the selected date range”.</p>',
+          shots: [tr('shift-swap-report', 'Shift Swap Report with no data for the selected date range and Export Excel unavailable')],
+        },
+      ],
+      related: ['check-wfh-wfo-status', 'check-shift-changes', 'export-a-team-report'],
+    },
+    {
+      title: 'Check WFH and WFO status',
+      slug: 'check-wfh-wfo-status',
+      summary: 'See who in the team is working from home or from the office on each shift date.',
+      prerequisites: [SIGNED_IN, 'The report dates are set (see “Run a team report”)'],
+      expectedOutcome: 'You know each engineer’s work mode for the dates you chose.',
+      steps: [
+        {
+          title: 'Open WFH & WFO Status',
+          html: '<p>On <strong>User Reports</strong>, click the <strong>WFH &amp; WFO Status</strong> tab.</p>',
+        },
+        {
+          title: 'Read the report',
+          html: '<p>Each row shows the engineer’s <strong>OLM ID</strong>, <strong>employee name</strong>, <strong>work mode</strong>, <strong>domain</strong>, <strong>sub domain</strong> and <strong>shift date</strong>. Use the page controls at the bottom to move through long lists, and <strong>Rows per page</strong> to show more at once.</p>',
+          shots: [tr('wfh-wfo-status', 'WFH & WFO Status report listing engineers with work mode, domain, sub domain and shift date')],
+        },
+      ],
+      related: ['run-a-team-report', 'export-a-team-report'],
+    },
+    {
+      title: 'Check shift swaps and shift changes',
+      slug: 'check-shift-changes',
+      summary: 'Review the shift swaps and shift changes made in the team for a date range.',
+      prerequisites: [SIGNED_IN, 'The report dates are set (see “Run a team report”)'],
+      expectedOutcome: 'You can see every shift swap and shift change in the date range.',
+      steps: [
+        {
+          title: 'Open the Shift Swap Report',
+          html: '<p>Click <strong>Shift Swap Report</strong> to see the shift swaps between engineers in the date range.</p>',
+          shots: [tr('shift-swap-report', 'Shift Swap Report tab')],
+        },
+        {
+          title: 'Open the Shift Change Report',
+          html: '<p>Click <strong>Shift Change Report</strong>. Each row shows the <strong>OLM ID</strong>, <strong>employee name</strong>, <strong>domain</strong>, <strong>sub domain</strong>, <strong>shift date</strong> and <strong>shift name</strong> (the shift code, such as G or N). Scroll right for the details of the change.</p>',
+          shots: [tr('shift-change-report', 'Shift Change Report listing employees with domain, sub domain, shift date and shift name')],
+          callout: { type: 'tip', text: 'Shift codes are explained in the legend at the bottom of Roster View.' },
+        },
+      ],
+      related: ['use-the-roster-tools', 'export-a-team-report'],
+    },
+    {
+      title: 'Export a team report to Excel',
+      slug: 'export-a-team-report',
+      summary: 'Download any team report as an Excel file.',
+      prerequisites: [SIGNED_IN, 'The report shows data for the selected dates'],
+      expectedOutcome: 'The report is downloaded as an Excel file.',
+      steps: [
+        {
+          title: 'Show the report you need',
+          html: '<p>Choose the dates, click <strong>Show</strong> and open the report tab you want to export.</p>',
+        },
+        {
+          title: 'Click Export Excel',
+          html: '<p>Click <strong>Export Excel</strong> above the table. The report downloads as an Excel file.</p>',
+          shots: [tr('shift-change-report', 'Export Excel button above the Shift Change Report')],
+          callout: { type: 'warning', text: 'Export Excel is unavailable when the report has no data for the selected dates.' },
+        },
+      ],
+      related: ['run-a-team-report'],
     },
   ],
 };
@@ -915,6 +1104,9 @@ ${callout('info', 'The legend at the bottom of Roster View lists every shift cod
       },
     ],
   },
+
+  /* ───────────────────────── Team Reports ───────────────────────── */
+  teamReportsModule,
 
   /* ───────────────────────── CRQ Rescheduling ───────────────────────── */
   reschedulingModule,
