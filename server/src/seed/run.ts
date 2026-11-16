@@ -3,8 +3,10 @@ import { Types } from 'mongoose';
 import { modulePath } from '@cms/shared';
 import { env } from '../config/env.js';
 import { AuditLog, Media, Migration, Module, SubTask, User, Version, type UserDoc } from '../models/index.js';
-import { moduleSearchText, subTaskSearchText, subTaskToSnapshot, type ModuleSnapshot, type SubTaskSnapshot } from '../services/content.js';
-import { configurationModules, userManagementModule } from './configuration.js';
+import { moduleSearchText, moduleToSnapshot, subTaskSearchText, subTaskToSnapshot, type ModuleSnapshot, type SubTaskSnapshot } from '../services/content.js';
+import { saveVersion } from '../services/versioning.js';
+import { configurationModules, reschedulingModule, userManagementModule } from './configuration.js';
+import { RESCHEDULE_NOTES } from './rescheduling-notes.js';
 import { modules as lifecycleModules, type SeedModule, type Shot } from './content.js';
 import { OLD_SIGNED_IN, planInventoryModule } from './plan-inventory.js';
 
@@ -264,6 +266,22 @@ const MIGRATIONS: { name: string; run: (admin: UserDoc) => Promise<void> }[] = [
     run: async (admin) => {
       if (!(await Module.exists({ slug: userManagementModule.slug }))) return;
       await seedModules([userManagementModule], admin, { updateExisting: true, changeNote: 'Added view, edit, permissions, reset password and remove user' });
+    },
+  },  {
+    // CRQ Rescheduling topic, and a pointer to it on the stages where rescheduling is allowed.
+    name: '2026-11-crq-rescheduling',
+    run: async (admin) => {
+      if (!(await Module.exists({ slug: reschedulingModule.slug }))) await seedModules([reschedulingModule], admin);
+      for (const [slug, note] of Object.entries(RESCHEDULE_NOTES)) {
+        const doc = await Module.findOne({ slug });
+        if (!doc || doc.guidelines.some((g) => g.text === note.guideline[1])) continue;
+        doc.guidelines.push({ type: note.guideline[0], text: note.guideline[1] });
+        doc.faqs.push({ q: note.faq[0], a: note.faq[1] });
+        const snap = moduleToSnapshot(doc.toObject());
+        doc.set({ searchText: moduleSearchText(snap), updatedBy: admin._id });
+        await doc.save();
+        await saveVersion({ entityType: 'module', entityId: doc._id, snapshot: snap, user: { id: String(admin._id), name: admin.name, email: admin.email, role: 'admin' }, changeNote: 'Added rescheduling note' });
+      }
     },
   },
 ];

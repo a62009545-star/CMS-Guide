@@ -1,5 +1,6 @@
 /* Content for the seven CMS lifecycle modules. Stage 1 comes from the CRQ Workflow SOP; stages 2–7 are placeholders to replace with your real process. */
 import { planInventoryModule } from './plan-inventory.js';
+import { RESCHEDULE_NOTES } from './rescheduling-notes.js';
 
 type Callout = { type: 'tip' | 'warning' | 'error'; text: string } | null;
 
@@ -453,3 +454,11 @@ ${facts([
     ],
   },
 ];
+
+// Stages where rescheduling is allowed point to the CRQ Rescheduling topic.
+for (const m of modules) {
+  const note = RESCHEDULE_NOTES[m.slug];
+  if (!note) continue;
+  m.guidelines.push(note.guideline);
+  m.faqs.push(note.faq);
+}

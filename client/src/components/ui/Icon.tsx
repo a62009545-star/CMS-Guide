@@ -1,6 +1,7 @@
 import {
   Activity,
   Box,
+  CalendarClock,
   CalendarDays,
   Database,
   LogIn,
@@ -33,6 +34,7 @@ export const MODULE_ICONS: Record<string, LucideIcon> = {
   network: Network,
   server: Server,
   database: Database,
+  'calendar-clock': CalendarClock,
   'calendar-days': CalendarDays,
   'log-in': LogIn,
   box: Box,
