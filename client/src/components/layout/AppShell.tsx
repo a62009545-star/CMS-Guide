@@ -1,6 +1,7 @@
 import { Menu, Search, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { SECTION_LABEL } from '@cms/shared';
 import { Guide } from '@/components/guide/Guide';
 import { cn } from '@/lib/utils';
 import { CommandPalette } from './CommandPalette';
@@ -30,10 +31,10 @@ function AreaTabs({ className, onNavigate, stacked }: { className?: string; onNa
         Home
       </NavLink>
       <NavLink to="/lifecycle" onClick={onNavigate} className={() => tab(inLifecycle)} aria-current={inLifecycle ? 'page' : undefined}>
-        CMS lifecycle
+        {SECTION_LABEL.lifecycle}
       </NavLink>
       <NavLink to="/configuration" onClick={onNavigate} className={() => tab(area === 'configuration')} aria-current={area === 'configuration' ? 'page' : undefined}>
-        Configuration &amp; management
+        {SECTION_LABEL.configuration}
       </NavLink>
     </nav>
   );

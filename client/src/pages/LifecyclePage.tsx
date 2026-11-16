@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { SECTION_LABEL } from '@cms/shared';
 import { useModuleSections } from '@/api/queries';
 import { LifecycleRoute } from '@/components/content/LifecycleRoute';
 import { ModuleView } from './ModulePage';
@@ -12,7 +13,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle';
  * right below, without leaving the page. The selection is kept in the URL (?stage=…).
  */
 export function LifecyclePage() {
-  useDocumentTitle('CMS lifecycle');
+  useDocumentTitle(SECTION_LABEL.lifecycle);
   const { lifecycle, isLoading, error, refetch } = useModuleSections();
   const [params, setParams] = useSearchParams();
   const detailRef = useRef<HTMLDivElement>(null);
@@ -25,7 +26,7 @@ export function LifecyclePage() {
   };
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-8 sm:py-14">
-      <h1 className="text-3xl font-bold sm:text-4xl">CMS lifecycle</h1>
+      <h1 className="text-3xl font-bold sm:text-4xl">{SECTION_LABEL.lifecycle}</h1>
       <p className="mt-3 max-w-2xl text-ink-muted">
         Every CRQ goes through these seven stages, in order. Select a stage to see everything about it below: how it works, the process flow, guidelines, walkthroughs and FAQs.
       </p>

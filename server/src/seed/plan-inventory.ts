@@ -6,7 +6,8 @@ import type { SeedModule, Shot } from './content.js';
 
 const shot = (name: string, alt: string): Shot => ({ src: `/sop/crq-workflow/${name}.webp`, alt });
 const TEAM_PATH = 'Vertical › Team Function › Domain › Sub Domain';
-const SIGNED_IN = 'Signed in to CHM (see “Sign in to CHM” in Configuration & management)';
+export const OLD_SIGNED_IN = 'Signed in to CHM (see “Sign in to CHM” in Configuration & management)';
+const SIGNED_IN = 'Signed in to CHM (see “Sign in to CHM” under Getting started with CHM)';
 
 const facts = (rows: [string, string][]) =>
   `<table><tbody>${rows.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('')}</tbody></table>`;

@@ -1,11 +1,12 @@
 /*
- * Configuration & management section, written from the CHM SOPs:
- * Team Management, Activity Database Setup & View and Roster. (The Scheduler Workflow SOP is used
- * for lifecycle stage 1, Plan & Inventory Validation: see plan-inventory.ts.)
+ * The "configuration" section (labelled "CMS lifecycle" in the UI), written from the CHM SOPs:
+ * Team Management, Activity Database Setup & View and Roster, plus User Management and the team
+ * member actions described by the team. (The Scheduler Workflow SOP is used for CRQ lifecycle
+ * stage 1, Plan & Inventory Validation: see plan-inventory.ts.)
  * The sign-in steps every SOP repeats live once, in "Getting started with CHM".
  * Screenshots are in client/public/sop/<topic>/.
  */
-import type { SeedModule, Shot } from './content.js';
+import type { SeedModule, SeedSubTask, Shot } from './content.js';
 
 const CHM_URL = 'https://chngmgmt.airtel.com/airtelcms/login';
 
@@ -17,6 +18,133 @@ const callout = (type: 'tip' | 'warning' | 'info', html: string) => `<div data-c
 
 const SIGNED_IN = 'Signed in to CHM (see “Sign in to CHM” under Getting started)';
 const TEAM_PATH = 'Vertical › Team Function › Domain › Sub Domain';
+
+/** Team Management: the Actions column (edit and delete) on each team member. */
+export const teamMemberActions: SeedSubTask[] = [
+  {
+    title: 'Edit a team member',
+    slug: 'edit-a-team-member',
+    summary: 'Change a team member’s details from the Actions column. Everything can be edited except the OLM ID.',
+    prerequisites: [SIGNED_IN, 'You are the team lead, or in a role above team lead'],
+    expectedOutcome: 'The member’s details are updated in Team Management.',
+    steps: [
+      {
+        title: 'Find the team member',
+        html: `<p>Open <strong>Team Management</strong> and select <strong>${TEAM_PATH}</strong>. Find the engineer in the list, or type their name or OLM ID into the search box.</p>`,
+        shots: [shot('team-management', 'team-list', 'Team list with an Actions column on the right holding a blue edit pencil and a red delete bin for each engineer')],
+      },
+      {
+        title: 'Click Edit in the Actions column',
+        html: '<p>In the <strong>Actions</strong> column on the right of the engineer’s row, click the <strong>edit</strong> icon (the pencil). The member’s details open for editing.</p>',
+        callout: { type: 'warning', text: 'Only a team lead, or a role above team lead, can edit a team member. If you are not, ask your team lead to make the change.' },
+      },
+      {
+        title: 'Update the details',
+        html: '<p>Change the details that need updating, such as name, email, mobile number, employment type, vendor company, designation, job level, office location, device vendor capability or place in the organisation hierarchy.</p><p>The <strong>OLM ID</strong> cannot be edited.</p>',
+        callout: { type: 'tip', text: 'If the OLM ID itself is wrong, delete the member and add them again with the correct OLM ID.' },
+      },
+      {
+        title: 'Save the changes',
+        html: '<p>Save the form. The updated details show in the team list straight away.</p>',
+      },
+    ],
+    related: ['remove-a-team-member', 'add-a-team-member'],
+  },
+  {
+    title: 'Remove a team member',
+    slug: 'remove-a-team-member',
+    summary: 'Delete a member who has left the company or the team, or who was added by mistake.',
+    prerequisites: [SIGNED_IN, 'The person has left the company or the team, or was added by mistake'],
+    expectedOutcome: 'The member no longer appears in the team list.',
+    steps: [
+      {
+        title: 'Find the team member',
+        html: `<p>Open <strong>Team Management</strong> and select <strong>${TEAM_PATH}</strong>. Find the engineer in the list, or search by name or OLM ID.</p>`,
+        shots: [shot('team-management', 'team-list', 'Team list with the red delete bin in the Actions column of each engineer')],
+      },
+      {
+        title: 'Click Delete in the Actions column',
+        html: '<p>In the <strong>Actions</strong> column on the right of the engineer’s row, click the <strong>delete</strong> icon (the red bin). If CHM asks you to confirm, confirm the deletion.</p>',
+        callout: {
+          type: 'warning',
+          text: 'Delete a member only when they have left the company, have moved out of the team, or were added by mistake. To change their details, edit them instead.',
+        },
+      },
+      {
+        title: 'Check the team list',
+        html: '<p>The engineer is removed from the team list, and the level counts in the toolbar update.</p>',
+      },
+    ],
+    related: ['edit-a-team-member', 'add-a-team-member'],
+  },
+];
+
+/** User Management: give people access to CMS, as a Team User or an Other User. */
+export const userManagementModule: SeedModule = {
+  title: 'User Management',
+  slug: 'user-management',
+  section: 'configuration',
+  icon: 'user-plus',
+  summary: 'Add people to CMS so they can sign in. You can add a user in two ways: as a Team User or as an Other User.',
+  e2e: `
+<p>User Management is where people are given access to CMS. A person must be added here before they can sign in.</p>
+${facts([
+  ['Where in CHM', 'Left (side) menu › <strong>User Management</strong>'],
+  ['Who can add users', 'Only people who have access to User Management'],
+  ['Ways to add a user', '<strong>Team User</strong> or <strong>Other User</strong>'],
+  ['Used with', 'Team Management, where team members and their details are kept'],
+])}
+<h3>Two ways to add a user</h3>
+<ul>
+<li><strong>Team User</strong>: a person who is a member of a team in Team Management.</li>
+<li><strong>Other User</strong>: a person who needs access to CMS but is not a member of a team.</li>
+</ul>
+`,
+  flow: [
+    ['Open User Management', 'Side menu › User Management'],
+    ['Add User', 'Click the Add User button'],
+    ['Choose the type', 'Team User or Other User'],
+    ['Fill in and save', 'The user can now sign in'],
+  ],
+  guidelines: [
+    ['must', 'Only people with access to User Management can add users to CMS.'],
+    ['should', 'Add engineers who belong to a team as Team Users, so their access matches their team.'],
+    ['note', 'A person needs a CMS user before they can sign in. See “Sign in to CHM” under Getting started.'],
+  ],
+  faqs: [
+    ['What is the difference between Team User and Other User?', 'A Team User is a member of a team in Team Management. An Other User needs access to CMS but is not a member of a team.'],
+    ['I cannot see User Management in the side menu. Why?', 'Only people with access to User Management see it. Ask a CMS admin to add the user for you.'],
+  ],
+  subTasks: [
+    {
+      title: 'Add a user to CMS',
+      slug: 'add-a-user',
+      summary: 'Open User Management, click Add User and add the person as a Team User or an Other User.',
+      prerequisites: [SIGNED_IN, 'Access to User Management', 'The person’s details'],
+      expectedOutcome: 'The person is added as a CMS user and can sign in.',
+      steps: [
+        {
+          title: 'Open User Management',
+          html: '<p>In the side menu, select <strong>User Management</strong>.</p>',
+        },
+        {
+          title: 'Click Add User',
+          html: '<p>Click <strong>Add User</strong>. You are asked how to add the user: <strong>Team User</strong> or <strong>Other User</strong>.</p>',
+        },
+        {
+          title: 'Choose Team User or Other User',
+          html: '<ul><li>Choose <strong>Team User</strong> for a person who is a member of a team in Team Management.</li><li>Choose <strong>Other User</strong> for a person who needs access but is not a member of a team.</li></ul>',
+          callout: { type: 'tip', text: 'Add the person to their team in Team Management first if they should be a Team User.' },
+        },
+        {
+          title: 'Fill in the details and save',
+          html: '<p>Fill in the user’s details and save. The person can now sign in to CMS with their OLM ID.</p>',
+        },
+      ],
+      related: ['sign-in-to-chm', 'add-a-team-member'],
+    },
+  ],
+};
 
 export const configurationModules: SeedModule[] = [
   /* ───────────────────────── Getting started ───────────────────────── */
@@ -38,7 +166,8 @@ ${facts([
 <p>The left-hand menu holds the icons you need. Move the cursor over an icon to see its options.</p>
 <ul>
 <li><strong>Team Management</strong> (people icon): engineers in each team.</li>
-<li><strong>Scheduler</strong> (clock icon): CRQ Workflow (see Plan &amp; Inventory Validation in the CMS lifecycle), Plan, CRQ Journey and Cancelled CRQs.</li>
+<li><strong>User Management</strong>: who can sign in to CMS.</li>
+<li><strong>Scheduler</strong> (clock icon): CRQ Workflow (see Plan &amp; Inventory Validation in the CRQ lifecycle), Plan, CRQ Journey and Cancelled CRQs.</li>
 <li><strong>Roster</strong> (calendar icon): Roster View and Roster Generation.</li>
 </ul>
 `,
@@ -93,7 +222,7 @@ ${facts([
     slug: 'team-management',
     section: 'configuration',
     icon: 'users',
-    summary: 'See the engineers in each team, filter and search them, and add team members one at a time or in bulk from Excel.',
+    summary: 'See the engineers in each team, filter and search them, add team members one at a time or in bulk from Excel, and edit or remove them.',
     hero: shot('team-management', 'team-list', 'Team Overview listing engineers with OLM ID, name, job level and device vendor capability'),
     e2e: `
 <p>Team Management is where each team’s engineers are recorded: who they are, their job level, their employer and which vendors’ equipment they can work on. The roster and CRQ assignments rely on this information, so keep it up to date.</p>
@@ -101,8 +230,11 @@ ${facts([
   ['Where in CHM', 'Left menu › <strong>Team Management</strong> (people icon). The page is called Team Overview.'],
   ['Choose a team with', TEAM_PATH],
   ['You can', 'Search engineers, filter every column, choose which columns to show, add one member, or upload many from Excel'],
+  ['Actions on each member', '<strong>Edit</strong> (pencil) changes a member’s details. <strong>Delete</strong> (bin) removes the member from the team.'],
+  ['Who can edit', 'Team leads, and roles above team lead'],
   ['Used with', 'Roster (shifts are planned for these engineers) and the CRQ Workflow, where CRQs are assigned to teams'],
 ])}
+${callout('warning', 'Every detail of a member can be edited except the OLM ID. Delete a member only when they have left the company or the team, or were added by mistake.')}
 ${callout('info', 'The name in the middle of the toolbar is the team’s L4 manager. The coloured counts next to it show how many engineers the team has at each level (L1 to L4) and in total.')}
 `,
     flow: [
@@ -110,18 +242,25 @@ ${callout('info', 'The name in the middle of the toolbar is the team’s L4 mana
       ['Select the team', TEAM_PATH],
       ['Find engineers', 'Search, column filters, column picker'],
       ['Add members', 'One at a time, or in bulk from Excel'],
+      ['Edit or remove', 'Actions column: edit details or delete a member'],
     ],
     guidelines: [
       ['must', 'Select Vertical, Team Function, Domain and Sub Domain before looking for engineers. The list stays empty until all four are chosen.'],
       ['must', 'Enter the OLM ID as 8 letters and numbers, and use the engineer’s @airtel.com email address.'],
       ['must', 'For bulk uploads, start from the template downloaded from CHM. Do not rename, reorder or delete its columns.'],
+      ['must', 'Only a team lead, or a role above team lead, can edit a team member.'],
+      ['must', 'Delete a team member only when they have left the company or the team, or were added by mistake.'],
       ['should', 'Review the results of a bulk upload before submitting, and fix rows with errors in the spreadsheet rather than one by one afterwards.'],
+      ['note', 'Every detail of a member can be edited except the OLM ID.'],
       ['note', 'Use the search box to find an engineer by name or OLM ID without scrolling.'],
     ],
     faqs: [
       ['Why is the team list empty?', 'Choose all four filters at the top: Vertical, Team Function, Domain and Sub Domain. The list loads once the last one is selected.'],
       ['How do I see more details, such as email or mobile number?', 'Use the column picker (the icon with horizontal lines at the top right of the table) and switch on the columns you want.'],
       ['Should I add one engineer or upload a spreadsheet?', 'Use Add Single Member for one or two people. Use Upload via Excel when onboarding several engineers at once.'],
+      ['Who can edit a team member?', 'Team leads, and roles above team lead. If the edit option does not work for you, ask your team lead to make the change.'],
+      ['Can I change a member’s OLM ID?', 'No. The OLM ID is the only detail that cannot be edited. If a member was added with the wrong OLM ID, delete them and add them again with the correct one.'],
+      ['When should I delete a team member?', 'Only when the person has left the company, has moved out of the team, or was added by mistake.'],
     ],
     subTasks: [
       {
@@ -216,8 +355,12 @@ ${callout('info', 'The name in the middle of the toolbar is the team’s L4 mana
         ],
         related: ['add-a-team-member'],
       },
+      ...teamMemberActions,
     ],
   },
+
+  /* ───────────────────────── User Management ───────────────────────── */
+  userManagementModule,
 
   /* ───────────────────────── Activity Database ───────────────────────── */
   {

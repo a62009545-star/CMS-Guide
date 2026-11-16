@@ -1,4 +1,5 @@
 import type { Role } from '@cms/shared';
+import { SECTION_LABEL } from '@cms/shared';
 
 /**
  * What the guide says on each page.
@@ -42,11 +43,11 @@ export function guideFor(pathname: string): PageGuide | null {
       key: 'home',
       greeting: 'Hi, I’m Relay. I can show you how this guide works. It takes about a minute.',
       steps: [
-        { target: '[data-guide="lifecycle"]', title: 'The CMS lifecycle', text: 'Every change goes through these seven stages in order. Open a stage to see what it does, who is involved and how to do each task.' },
+        { target: '[data-guide="lifecycle"]', title: `The ${SECTION_LABEL.lifecycle}`, text: 'Every change goes through these seven stages in order. Open a stage to see what it does, who is involved and how to do each task.' },
         { target: '[data-guide="sidebar"]', title: 'Stages, always at hand', text: 'The seven stages stay in this sidebar while you read the lifecycle. The red line shows how far along you are.' },
         { target: '[data-guide="menu"]', title: 'Stages, always at hand', text: 'Open this menu for the seven stages on any page.' },
         ...header,
-        { target: '[data-guide="areas"]', title: 'Configuration & management', text: 'How to use CHM itself, such as signing in, Team Management, the activity database and the roster, is in its own area. Switch to it here.' },
+        { target: '[data-guide="areas"]', title: SECTION_LABEL.configuration, text: `How to use CHM itself, such as signing in, Team Management, User Management, the activity database and the roster, is in its own area, ${SECTION_LABEL.configuration}. Switch to it here.` },
         { target: '[data-guide="recent"]', title: 'Recently updated', text: 'Walkthroughs that changed lately. Worth a look if you used them before.' },
         { target: '[data-guide="bookmarked"]', title: 'Your bookmarks', text: 'Bookmark any stage or walkthrough and it appears here, so the ones you use most are one click away.' },
         { title: 'Something out of date?', text: 'If a step no longer matches what you see in CMS, tell your CMS admin so they can update the guide.', roles: ['viewer'] },
@@ -60,7 +61,7 @@ export function guideFor(pathname: string): PageGuide | null {
       key: 'configuration',
       greeting: 'This area explains how to use CHM itself: teams, plan types and rosters. Shall I show you around?',
       steps: [
-        { target: '[data-guide="areas"]', title: 'Two separate areas', text: 'Switch between the CMS lifecycle and Configuration & management here. Each has its own pages and sidebar.' },
+        { target: '[data-guide="areas"]', title: 'Two separate areas', text: `Switch between the ${SECTION_LABEL.lifecycle} and the ${SECTION_LABEL.configuration} here. Each has its own pages and sidebar.` },
         { target: '[data-guide="config-start"]', title: 'Start here', text: 'If you have not used CHM before, begin with signing in. Every other walkthrough assumes you are signed in.' },
         { target: '[data-guide="config-topics"]', title: 'Topics', text: 'Each topic explains one part of CHM, with guidelines, FAQs and step-by-step walkthroughs.' },
       ],

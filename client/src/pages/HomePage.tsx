@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { SECTION_LABEL } from '@cms/shared';
 import { modulePath } from '@cms/shared';
 import { get } from '@/api/client';
 import { qk, useActivity, useModuleSections } from '@/api/queries';
@@ -100,9 +101,9 @@ export function HomePage() {
             <ul className="mt-3 space-y-1">
               {[
                 modules.lifecycle[0] && { to: modulePath('lifecycle', modules.lifecycle[0].slug), label: `Stage 1: ${modules.lifecycle[0].title}` },
-                { to: '/lifecycle', label: 'All seven lifecycle stages' },
+                { to: '/lifecycle', label: `All seven stages of the ${SECTION_LABEL.lifecycle}` },
                 modules.configuration[0] && { to: modulePath('configuration', modules.configuration[0].slug), label: modules.configuration[0].title },
-                { to: '/configuration', label: 'Configuration & management' },
+                { to: '/configuration', label: SECTION_LABEL.configuration },
                 { to: '/search', label: 'Search the whole guide' },
                 { to: '/bookmarks', label: 'All your bookmarks' },
                 isStaff && { to: '/admin', label: 'Admin dashboard' },

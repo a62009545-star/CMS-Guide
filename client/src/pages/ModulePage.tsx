@@ -47,7 +47,7 @@ export function ModuleView({ slug: moduleSlug, embedded = false }: { slug: strin
   const { data: m, isLoading, error, refetch } = useModule(moduleSlug, preview);
   const { user, isStaff } = useAuth();
   const location = useLocation();
-  useDocumentTitle(embedded ? 'CMS lifecycle' : m?.title);
+  useDocumentTitle(embedded ? SECTION_LABEL.lifecycle : m?.title);
   useHashScroll(!!m);
   const wrap = embedded ? '' : 'mx-auto max-w-6xl px-4 py-8 sm:px-8';
 

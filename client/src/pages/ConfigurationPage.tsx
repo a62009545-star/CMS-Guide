@@ -1,5 +1,6 @@
 import { ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { SECTION_LABEL } from '@cms/shared';
 import { modulePath } from '@cms/shared';
 import { useModuleSections } from '@/api/queries';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
@@ -10,7 +11,7 @@ import { useAuth } from '@/lib/auth';
 
 /** Landing page of the Configuration & management area, separate from the CMS lifecycle. */
 export function ConfigurationPage() {
-  useDocumentTitle('Configuration & management');
+  useDocumentTitle(SECTION_LABEL.configuration);
   const { configuration, isLoading, error, refetch } = useModuleSections();
   const { isStaff } = useAuth();
   const [first, ...rest] = configuration;
@@ -19,9 +20,9 @@ export function ConfigurationPage() {
     <div>
       <section className="border-b border-line bg-surface">
         <div className="mx-auto max-w-6xl px-4 pb-10 pt-10 sm:px-8 sm:pt-14">
-          <h1 className="max-w-3xl text-3xl font-bold sm:text-4xl">Configuration &amp; management</h1>
+          <h1 className="max-w-3xl text-3xl font-bold sm:text-4xl">{SECTION_LABEL.configuration}</h1>
           <p className="mt-3 max-w-2xl text-ink-muted">
-            How to set up and run CHM itself: who is in each team, which plan types exist, and who is on shift. Each topic has step-by-step walkthroughs with screenshots.
+            How to set up and run CHM itself: who can sign in, who is in each team, which plan types exist, and who is on shift. Each topic has step-by-step walkthroughs with screenshots.
           </p>
           {first && (
             <Link

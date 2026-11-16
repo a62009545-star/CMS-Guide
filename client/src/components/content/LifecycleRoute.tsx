@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { modulePath } from '@cms/shared';
+import { SECTION_LABEL } from '@cms/shared';
 import type { ModuleListItem } from '@/api/types';
 import { ModuleIcon } from '@/components/ui/Icon';
 import { cn } from '@/lib/utils';
@@ -47,7 +48,7 @@ export function LifecycleRoute({
 }) {
   const n = modules.length;
   return (
-    <nav aria-label="CMS lifecycle" data-guide="lifecycle">
+    <nav aria-label={SECTION_LABEL.lifecycle} data-guide="lifecycle">
       {/* Horizontal (lg+) */}
       <ol className="relative hidden lg:grid" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
         <span aria-hidden className="absolute top-[19px] h-0.5 bg-line" style={{ left: `${50 / n}%`, right: `${50 / n}%` }} />

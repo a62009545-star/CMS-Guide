@@ -8,12 +8,15 @@ export type Role = (typeof ROLES)[number];
 export const STATUSES = ['draft', 'published'] as const;
 export type Status = (typeof STATUSES)[number];
 
-/** Where a module appears: the 7-stage CMS lifecycle, or the configuration & management area. */
+/**
+ * Where a module appears. The keys are stable (stored in the database and used in addresses);
+ * change the labels here to rename an area everywhere in the UI.
+ */
 export const SECTIONS = ['lifecycle', 'configuration'] as const;
 export type Section = (typeof SECTIONS)[number];
 export const SECTION_LABEL: Record<Section, string> = {
-  lifecycle: 'CMS lifecycle',
-  configuration: 'Configuration & management',
+  lifecycle: 'CRQ lifecycle',
+  configuration: 'CMS lifecycle',
 };
 
 /** Each section lives under its own address. */

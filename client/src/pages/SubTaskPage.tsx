@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, Check, CheckCircle2, ChevronDown, Circle } from 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { modulePath } from '@cms/shared';
+import { SECTION_LABEL } from '@cms/shared';
 import { toast } from 'sonner';
 import { ApiError, errorMessage, post } from '@/api/client';
 import { qk, useSubTask } from '@/api/queries';
@@ -140,7 +141,7 @@ export function SubTaskPage() {
               <ArrowLeft className="h-4 w-4" aria-hidden />
             </span>
             <span className="min-w-0">
-              <span className="block text-xs text-ink-muted">{s.module.section === 'configuration' ? 'Configuration & management' : `Stage ${s.module.order}`}</span>
+              <span className="block text-xs text-ink-muted">{s.module.section === 'configuration' ? SECTION_LABEL.configuration : `Stage ${s.module.order}`}</span>
               <span className="block text-sm font-semibold leading-snug group-hover:text-brand-fg">{s.module.title}</span>
             </span>
           </Link>
@@ -164,9 +165,9 @@ export function SubTaskPage() {
           <ol className="flex flex-wrap items-center gap-1.5">
             <li>
               {s.module.section === 'configuration' ? (
-                <Link to="/configuration" className="hover:text-ink">Configuration &amp; management</Link>
+                <Link to="/configuration" className="hover:text-ink">{SECTION_LABEL.configuration}</Link>
               ) : (
-                <Link to="/lifecycle" className="hover:text-ink">Lifecycle</Link>
+                <Link to="/lifecycle" className="hover:text-ink">{SECTION_LABEL.lifecycle}</Link>
               )}
             </li>
             <li aria-hidden>›</li>

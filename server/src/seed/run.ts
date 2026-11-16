@@ -4,15 +4,24 @@ import { modulePath } from '@cms/shared';
 import { env } from '../config/env.js';
 import { AuditLog, Media, Migration, Module, SubTask, User, Version, type UserDoc } from '../models/index.js';
 import { moduleSearchText, subTaskSearchText, subTaskToSnapshot, type ModuleSnapshot, type SubTaskSnapshot } from '../services/content.js';
-import { configurationModules } from './configuration.js';
+import { configurationModules, userManagementModule } from './configuration.js';
 import { modules as lifecycleModules, type SeedModule, type Shot } from './content.js';
-import { planInventoryModule } from './plan-inventory.js';
+import { OLD_SIGNED_IN, planInventoryModule } from './plan-inventory.js';
 
 /**
  * Insert seed modules with their sub-tasks, media, initial versions and "published" audit entries.
  * Lifecycle content uses placeholder mock-ups; configuration content uses real SOP screenshots.
  */
-async function seedModules(seeds: SeedModule[], admin: UserDoc, opts: { replaceExisting?: boolean } = {}) {
+async function seedModules(
+  seeds: SeedModule[],
+  admin: UserDoc,
+  /**
+   * replaceExisting: overwrite a module with the same slug and replace all its walkthroughs.
+   * updateExisting: overwrite the module's own text but keep its walkthroughs, adding only missing ones.
+   * In both cases the module record (id, order, status) is kept, so bookmarks and history survive.
+   */
+  opts: { replaceExisting?: boolean; updateExisting?: boolean; changeNote?: string } = {},
+) {
   // Placeholder screens are shared by the lifecycle modules' steps.
   let placeholders: Types.ObjectId[] = [];
   if (seeds.some((m) => m.subTasks.some((s) => s.steps.some((st) => st.images)))) {
@@ -35,6 +44,11 @@ async function seedModules(seeds: SeedModule[], admin: UserDoc, opts: { replaceE
   const mediaFor = async (s: Shot) => {
     const known = shotIds.get(s.src);
     if (known) return known;
+    const existingMedia = await Media.findOne({ url: s.src }).select('_id').lean();
+    if (existingMedia) {
+      shotIds.set(s.src, existingMedia._id as Types.ObjectId);
+      return existingMedia._id as Types.ObjectId;
+    }
     const doc = await Media.create({ url: s.src, type: 'image', caption: s.caption ?? '', altText: s.alt, mimeType: 'image/webp', uploadedBy: admin._id });
     shotIds.set(s.src, doc._id);
     return doc._id;
@@ -48,12 +62,17 @@ async function seedModules(seeds: SeedModule[], admin: UserDoc, opts: { replaceE
   for (const m of seeds) {
     const section = m.section ?? 'lifecycle';
     // When replacing, update the existing record in place so its id (bookmarks, history) is kept.
-    const existing = opts.replaceExisting ? await Module.findOne({ slug: m.slug }) : null;
+    const existing = opts.replaceExisting || opts.updateExisting ? await Module.findOne({ slug: m.slug }) : null;
     const last = await Module.findOne({ section }).sort({ order: -1 }).select('order').lean();
     const order = existing?.order ?? (last?.order ?? 0) + 1;
+    // Configuration topics without a screenshot get no hero; lifecycle placeholders get an illustration.
     const hero = m.hero
       ? await mediaFor(m.hero)
-      : (
+      : existing && opts.updateExisting
+        ? ((existing.heroMedia as Types.ObjectId | null) ?? null)
+        : section === 'configuration'
+          ? null
+          : (
           await Media.create({
             url: `/placeholders/hero-${((order - 1) % 3) + 1}.svg`,
             type: 'image',
@@ -72,17 +91,26 @@ async function seedModules(seeds: SeedModule[], admin: UserDoc, opts: { replaceE
       summary: m.summary,
       e2eContent: { html: m.e2e.trim(), json: null },
       flowSteps: m.flow.map(([title, description]) => ({ title, description })),
-      heroMedia: String(hero),
+      heroMedia: hero ? String(hero) : null,
       guidelines: m.guidelines.map(([type, text]) => ({ type, text })),
       faqs: m.faqs.map(([q, a]) => ({ q, a })),
     };
     const fields = { ...snap, heroMedia: hero, updatedBy: admin._id, searchText: moduleSearchText(snap) };
     let mod;
     let versionNumber = 1;
+    let subSeeds = m.subTasks;
+    let firstOrder = 1;
     if (existing) {
-      const old = await SubTask.find({ moduleId: existing._id }).select('_id').lean();
-      await SubTask.updateMany({}, { $pull: { relatedSubTaskIds: { $in: old.map((o) => o._id) } } });
-      await SubTask.deleteMany({ moduleId: existing._id });
+      if (opts.replaceExisting) {
+        const old = await SubTask.find({ moduleId: existing._id }).select('_id').lean();
+        await SubTask.updateMany({}, { $pull: { relatedSubTaskIds: { $in: old.map((o) => o._id) } } });
+        await SubTask.deleteMany({ moduleId: existing._id });
+      } else {
+        const kept = await SubTask.find({ moduleId: existing._id }).select('slug order').lean();
+        const have = new Set(kept.map((k) => k.slug));
+        subSeeds = m.subTasks.filter((st) => !have.has(st.slug));
+        firstOrder = Math.max(0, ...kept.map((k) => k.order ?? 0)) + 1;
+      }
       existing.set({ ...fields, pendingDraft: null, pendingDraftBy: null, pendingDraftAt: null });
       mod = await existing.save();
       const lastVersion = await Version.findOne({ entityType: 'module', entityId: mod._id }).sort({ versionNumber: -1 }).lean();
@@ -90,9 +118,10 @@ async function seedModules(seeds: SeedModule[], admin: UserDoc, opts: { replaceE
     } else {
       mod = await Module.create({ ...fields, order, status: 'published', publishedAt: new Date() });
     }
-    await Version.create({ entityType: 'module', entityId: mod._id, versionNumber, snapshot: snap, changedFields: Object.keys(snap), changedBy: admin._id, changedByName: admin.name, changeNote: existing ? 'Replaced with the CRQ Workflow SOP content' : 'Initial content' });
+    await Version.create({ entityType: 'module', entityId: mod._id, versionNumber, snapshot: snap, changedFields: Object.keys(snap), changedBy: admin._id, changedByName: admin.name, changeNote: opts.changeNote ?? (existing ? 'Replaced with the CRQ Workflow SOP content' : 'Initial content') });
 
-    for (const [si, s] of m.subTasks.entries()) {
+    for (const [i0, s] of subSeeds.entries()) {
+      const si = firstOrder - 1 + i0;
       const steps = [];
       for (const st of s.steps) {
         const media: string[] = [];
@@ -194,6 +223,31 @@ const MIGRATIONS: { name: string; run: (admin: UserDoc) => Promise<void> }[] = [
         const logs = await AuditLog.find({ path: { $regex: `^/modules/${slug}(/|#|$)` } }).select('path').lean();
         for (const l of logs) await AuditLog.updateOne({ _id: l._id }, { $set: { path: l.path!.replace('/modules/', '/configuration/') } });
       }
+    },
+  },
+  {
+    // Team Management gains edit/delete walkthroughs; new User Management topic; the areas are
+    // renamed in the UI (CRQ lifecycle / CMS lifecycle), so update text that named the old areas.
+    name: '2026-11-team-actions-user-management',
+    run: async (admin) => {
+      const team = configurationModules.find((m) => m.slug === 'team-management');
+      const gettingStarted = configurationModules.find((m) => m.slug === 'getting-started-with-chm');
+      const update = [team, gettingStarted].filter((m): m is SeedModule => Boolean(m));
+      const present = new Set((await Module.find({ slug: { $in: update.map((m) => m.slug) } }).select('slug').lean()).map((m) => m.slug));
+      const toUpdate = update.filter((m) => present.has(m.slug)); // never re-add a topic an admin deleted
+      if (toUpdate.length) await seedModules(toUpdate, admin, { updateExisting: true, changeNote: 'Added team member actions and User Management' });
+
+      if (!(await Module.exists({ slug: userManagementModule.slug }))) await seedModules([userManagementModule], admin);
+
+      // Place User Management straight after Team Management.
+      const config = await Module.find({ section: 'configuration' }).sort({ order: 1 }).select('slug').lean();
+      const slugs = config.map((c) => c.slug).filter((s) => s !== userManagementModule.slug);
+      const at = slugs.indexOf('team-management');
+      if (at >= 0) slugs.splice(at + 1, 0, userManagementModule.slug);
+      else slugs.push(userManagementModule.slug);
+      await Module.bulkWrite(slugs.map((slug, i) => ({ updateOne: { filter: { slug }, update: { $set: { order: i + 1 } } } })));
+
+      await SubTask.updateMany({ prerequisites: OLD_SIGNED_IN }, { $set: { 'prerequisites.$': 'Signed in to CHM (see “Sign in to CHM” under Getting started with CHM)' } });
     },
   },
 ];

@@ -50,7 +50,7 @@ test('slugs are unique and related links resolve', () => {
 test('configuration content is in the configuration section with real screenshots', () => {
   for (const m of configurationModules) {
     assert.equal(m.section, 'configuration');
-    assert.ok(m.hero?.src.startsWith('/sop/'));
+    if (m.hero) assert.ok(m.hero.src.startsWith('/sop/'), `${m.slug}: hero must be a real screenshot`);
     for (const s of m.subTasks) for (const st of s.steps) for (const sh of st.shots ?? []) assert.ok(sh.alt.length > 10, `${s.slug}: alt text`);
   }
 });
