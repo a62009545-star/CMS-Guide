@@ -79,66 +79,90 @@ export const teamMemberActions: SeedSubTask[] = [
   },
 ];
 
-/** User Management: give people access to CMS, as a Team User or an Other User. */
+/** User Management: give people access to CMS. Written from screenshots of the Add New User wizard. */
+const um = (name: string, alt: string) => shot('user-management', name, alt);
 export const userManagementModule: SeedModule = {
   title: 'User Management',
   slug: 'user-management',
   section: 'configuration',
   icon: 'user-plus',
-  summary: 'Add people to CMS so they can sign in. You can add a user in two ways: as a Team User or as an Other User.',
+  summary: 'Add people to CMS so they can sign in. The Add New User wizard takes you through Basic Info, Employment, Hierarchy and Review.',
+  hero: um('basic-info', 'User Management page with the Add New User window open on the Basic Info step'),
   e2e: `
-<p>User Management is where people are given access to CMS. A person must be added here before they can sign in.</p>
+<p>User Management is where people are given access to CMS. A person must be added here before they can sign in. The page lists everyone in the <strong>User Directory</strong>.</p>
 ${facts([
-  ['Where in CHM', 'Left (side) menu › <strong>User Management</strong>'],
+  ['Where in CHM', 'Side menu › <strong>User Management</strong>. The page has three tabs: User Management, User Log Details and Audit Log.'],
   ['Who can add users', 'Only people who have access to User Management'],
   ['Ways to add a user', '<strong>Team User</strong> or <strong>Other User</strong>'],
-  ['Used with', 'Team Management, where team members and their details are kept'],
+  ['On the User Directory', 'Totals (total users, active users, new this month), search by name, OLM ID or email, Department and Filters, <strong>Import</strong>, <strong>Export</strong> and <strong>Add User</strong>'],
+  ['Actions on each user', 'View (eye), Edit (pencil) and more options (⋮)'],
 ])}
-<h3>Two ways to add a user</h3>
-<ul>
-<li><strong>Team User</strong>: a person who is a member of a team in Team Management.</li>
-<li><strong>Other User</strong>: a person who needs access to CMS but is not a member of a team.</li>
-</ul>
+<h3>The Add New User wizard</h3>
+<ol>
+<li><strong>Basic Info</strong>: OLM ID, full name, email address and mobile number.</li>
+<li><strong>Employment</strong>: employment type, vendor company, designation, job level, office location, device vendor capability, gender and date of joining.</li>
+<li><strong>Hierarchy</strong>: Vertical, Team Function, Domain and Sub Domain.</li>
+<li><strong>Review</strong>: check every detail, including the role, then click Add User.</li>
+</ol>
+${callout('info', 'Use <strong>Back</strong> at any step to change something you entered earlier. Nothing is saved until you click <strong>Add User</strong> on the Review step.')}
 `,
   flow: [
     ['Open User Management', 'Side menu › User Management'],
-    ['Add User', 'Click the Add User button'],
-    ['Choose the type', 'Team User or Other User'],
-    ['Fill in and save', 'The user can now sign in'],
+    ['Add User', 'Top right of the User Directory'],
+    ['Basic Info', 'OLM ID, name, email, mobile'],
+    ['Employment', 'Type, designation, level, location'],
+    ['Hierarchy', 'Vertical › Team Function › Domain › Sub Domain'],
+    ['Review and add', 'Check the details, click Add User'],
   ],
   guidelines: [
     ['must', 'Only people with access to User Management can add users to CMS.'],
-    ['should', 'Add engineers who belong to a team as Team Users, so their access matches their team.'],
-    ['note', 'A person needs a CMS user before they can sign in. See “Sign in to CHM” under Getting started.'],
+    ['must', 'Enter the OLM ID as 8 letters and numbers, and an email address that ends in @airtel.com.'],
+    ['must', 'Choose the Vertical, Team Function, Domain and Sub Domain the person actually works in. They decide which team’s work the user is linked to.'],
+    ['should', 'Check every value on the Review step before clicking Add User, especially the OLM ID, email and Sub Domain.'],
+    ['note', 'Search the User Directory by name, OLM ID or email first, to make sure the person has not already been added.'],
   ],
   faqs: [
     ['What is the difference between Team User and Other User?', 'A Team User is a member of a team in Team Management. An Other User needs access to CMS but is not a member of a team.'],
     ['I cannot see User Management in the side menu. Why?', 'Only people with access to User Management see it. Ask a CMS admin to add the user for you.'],
+    ['I made a mistake on an earlier step. Do I have to start again?', 'No. Click Back to return to any earlier step, correct it, then click Next again. Nothing is saved until you click Add User on the Review step.'],
+    ['Which Verticals can I choose?', 'System Engineering, Service Experience, Infra and Technology Solutions. Team Function, Domain and Sub Domain then narrow it down to the person’s team.'],
   ],
   subTasks: [
     {
       title: 'Add a user to CMS',
       slug: 'add-a-user',
-      summary: 'Open User Management, click Add User and add the person as a Team User or an Other User.',
-      prerequisites: [SIGNED_IN, 'Access to User Management', 'The person’s details'],
-      expectedOutcome: 'The person is added as a CMS user and can sign in.',
+      summary: 'Click Add User and complete the four steps of the Add New User wizard: Basic Info, Employment, Hierarchy and Review.',
+      prerequisites: [SIGNED_IN, 'Access to User Management', 'The person’s OLM ID, @airtel.com email, mobile number, employment details and team'],
+      expectedOutcome: 'The person is added to the User Directory and can sign in to CMS.',
       steps: [
         {
-          title: 'Open User Management',
-          html: '<p>In the side menu, select <strong>User Management</strong>.</p>',
+          title: 'Open User Management and click Add User',
+          html: '<p>In the side menu, select <strong>User Management</strong>. On the <strong>User Directory</strong>, click <strong>Add User</strong> at the top right. Choose <strong>Team User</strong> or <strong>Other User</strong> if CHM asks. The <strong>Add New User</strong> window opens on the Basic Info step.</p>',
+          callout: { type: 'tip', text: 'Search the User Directory by name, OLM ID or email first, to check the person is not already a user.' },
         },
         {
-          title: 'Click Add User',
-          html: '<p>Click <strong>Add User</strong>. You are asked how to add the user: <strong>Team User</strong> or <strong>Other User</strong>.</p>',
+          title: 'Fill in Basic Info',
+          html: '<ul><li><strong>OLM ID</strong>: 8 letters and numbers.</li><li><strong>Full Name</strong>.</li><li><strong>Email Address</strong>: must end in @airtel.com.</li><li><strong>Mobile Number</strong>.</li></ul><p>Click <strong>Next</strong>.</p>',
+          shots: [um('basic-info', 'Add New User, Basic Info step, with OLM ID, Full Name, Email Address and Mobile Number fields, and Cancel and Next buttons')],
         },
         {
-          title: 'Choose Team User or Other User',
-          html: '<ul><li>Choose <strong>Team User</strong> for a person who is a member of a team in Team Management.</li><li>Choose <strong>Other User</strong> for a person who needs access but is not a member of a team.</li></ul>',
-          callout: { type: 'tip', text: 'Add the person to their team in Team Management first if they should be a Team User.' },
+          title: 'Fill in Employment',
+          html: '<p>Choose the <strong>Employment Type</strong> and <strong>Job Level</strong> from their lists, and fill in <strong>Vendor Company</strong>, <strong>Designation</strong>, <strong>Office Location</strong> and <strong>Device Vendor Capability</strong>. Choose the <strong>Gender</strong> and pick the <strong>Date of Joining</strong>. Click <strong>Next</strong>.</p>',
+          shots: [um('employment', 'Add New User, Employment step, with Employment Type, Vendor Company, Designation, Job Level, Office Location, Device Vendor Capability, Gender and Date of Joining')],
         },
         {
-          title: 'Fill in the details and save',
-          html: '<p>Fill in the user’s details and save. The person can now sign in to CMS with their OLM ID.</p>',
+          title: 'Choose the Hierarchy',
+          html: '<p>Choose the person’s <strong>Vertical</strong>, then <strong>Team Function</strong>, <strong>Domain</strong> and <strong>Sub Domain</strong>, for example System Engineering › Change Management › IP Access › MPLS Access. Click <strong>Next</strong>.</p>',
+          shots: [
+            um('vertical-options', 'Vertical list open with System Engineering, Service Experience, Infra and Technology Solutions'),
+            um('hierarchy', 'Hierarchy step filled in with System Engineering, Change Management, IP Access and MPLS Access'),
+          ],
+          callout: { type: 'warning', text: 'Pick the team the person actually works in. The Sub Domain decides which team’s work the user is linked to.' },
+        },
+        {
+          title: 'Review and click Add User',
+          html: '<p>The <strong>Review</strong> step lists everything you entered, and the role the user will have, for example <strong>Team Member</strong>. Check each value. Use <strong>Back</strong> to correct anything, then click <strong>Add User</strong>.</p>',
+          shots: [um('review', 'Review step listing full name, OLM ID, email, mobile, designation, vertical, team function, domain, sub domain and role, with Back and Add User buttons')],
         },
       ],
       related: ['sign-in-to-chm', 'add-a-team-member'],

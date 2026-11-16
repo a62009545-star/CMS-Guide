@@ -250,6 +250,14 @@ const MIGRATIONS: { name: string; run: (admin: UserDoc) => Promise<void> }[] = [
       await SubTask.updateMany({ prerequisites: OLD_SIGNED_IN }, { $set: { 'prerequisites.$': 'Signed in to CHM (see “Sign in to CHM” under Getting started with CHM)' } });
     },
   },
+  {
+    // User Management rewritten from screenshots of the Add New User wizard.
+    name: '2026-11-user-management-screens',
+    run: async (admin) => {
+      if (!(await Module.exists({ slug: userManagementModule.slug }))) return; // deleted by an admin: leave it
+      await seedModules([userManagementModule], admin, { replaceExisting: true, changeNote: 'Rewritten from the Add New User screenshots' });
+    },
+  },
 ];
 
 /** Run pending migrations. Safe to call on every start. */
