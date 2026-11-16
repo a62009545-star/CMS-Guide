@@ -258,6 +258,14 @@ const MIGRATIONS: { name: string; run: (admin: UserDoc) => Promise<void> }[] = [
       await seedModules([userManagementModule], admin, { replaceExisting: true, changeNote: 'Rewritten from the Add New User screenshots' });
     },
   },
+  {
+    // View, edit and ⋮ actions (permissions, reset password, remove) on each user.
+    name: '2026-11-user-management-actions',
+    run: async (admin) => {
+      if (!(await Module.exists({ slug: userManagementModule.slug }))) return;
+      await seedModules([userManagementModule], admin, { updateExisting: true, changeNote: 'Added view, edit, permissions, reset password and remove user' });
+    },
+  },
 ];
 
 /** Run pending migrations. Safe to call on every start. */

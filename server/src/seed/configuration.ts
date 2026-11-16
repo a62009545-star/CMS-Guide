@@ -86,16 +86,16 @@ export const userManagementModule: SeedModule = {
   slug: 'user-management',
   section: 'configuration',
   icon: 'user-plus',
-  summary: 'Add people to CMS so they can sign in. The Add New User wizard takes you through Basic Info, Employment, Hierarchy and Review.',
-  hero: um('basic-info', 'User Management page with the Add New User window open on the Basic Info step'),
+  summary: 'Add people to CMS so they can sign in, then view, edit, check permissions, reset passwords or remove users from the User Directory.',
+  hero: um('directory-more-menu', 'User Directory listing users with OLM ID, department, role, status and joined date, with the more-options menu open'),
   e2e: `
 <p>User Management is where people are given access to CMS. A person must be added here before they can sign in. The page lists everyone in the <strong>User Directory</strong>.</p>
 ${facts([
   ['Where in CHM', 'Side menu › <strong>User Management</strong>. The page has three tabs: User Management, User Log Details and Audit Log.'],
   ['Who can add users', 'Only people who have access to User Management'],
   ['Ways to add a user', '<strong>Team User</strong> or <strong>Other User</strong>'],
-  ['On the User Directory', 'Totals (total users, active users, new this month), search by name, OLM ID or email, Department and Filters, <strong>Import</strong>, <strong>Export</strong> and <strong>Add User</strong>'],
-  ['Actions on each user', 'View (eye), Edit (pencil) and more options (⋮)'],
+  ['On the User Directory', 'Totals (total users, active, team heads, super admins, inactive, new this month), search by name, OLM ID or email, role filter, sort, Filters, <strong>Import</strong>, <strong>Export</strong> and <strong>Add User</strong>'],
+  ['Actions on each user', '<strong>View</strong> (eye): the user’s details. <strong>Edit</strong> (pencil): change details, except the OLM ID and organisation hierarchy. <strong>More</strong> (⋮): Permissions, Reset Password and Remove User.'],
 ])}
 <h3>The Add New User wizard</h3>
 <ol>
@@ -105,6 +105,13 @@ ${facts([
 <li><strong>Review</strong>: check every detail, including the role, then click Add User.</li>
 </ol>
 ${callout('info', 'Use <strong>Back</strong> at any step to change something you entered earlier. Nothing is saved until you click <strong>Add User</strong> on the Review step.')}
+<h3>After a user is added</h3>
+<ul>
+<li><strong>View</strong> (eye) opens a panel with three tabs: <strong>Overview</strong> (OLM ID, email, phone, organisation, department, employment type, joining date), <strong>Permissions</strong> and <strong>Sessions</strong>.</li>
+<li><strong>Edit</strong> (pencil) opens <strong>Edit Team Member</strong>. Everything can be changed except the OLM ID and the organisation hierarchy, which are locked.</li>
+<li><strong>More</strong> (⋮) has <strong>Permissions</strong>, <strong>Reset Password</strong> and <strong>Remove User</strong>.</li>
+</ul>
+${callout('warning', 'The OLM ID and organisation hierarchy cannot be changed after a user is added. Check them carefully on the Review step.')}
 `,
   flow: [
     ['Open User Management', 'Side menu › User Management'],
@@ -113,19 +120,26 @@ ${callout('info', 'Use <strong>Back</strong> at any step to change something you
     ['Employment', 'Type, designation, level, location'],
     ['Hierarchy', 'Vertical › Team Function › Domain › Sub Domain'],
     ['Review and add', 'Check the details, click Add User'],
+    ['Manage the user', 'View, edit, permissions, reset password, remove'],
   ],
   guidelines: [
     ['must', 'Only people with access to User Management can add users to CMS.'],
     ['must', 'Enter the OLM ID as 8 letters and numbers, and an email address that ends in @airtel.com.'],
     ['must', 'Choose the Vertical, Team Function, Domain and Sub Domain the person actually works in. They decide which team’s work the user is linked to.'],
     ['should', 'Check every value on the Review step before clicking Add User, especially the OLM ID, email and Sub Domain.'],
+    ['must', 'The OLM ID and organisation hierarchy cannot be edited once a user is added.'],
+    ['must', 'Use Remove User only for someone who should no longer have access to CMS.'],
     ['note', 'Search the User Directory by name, OLM ID or email first, to make sure the person has not already been added.'],
+    ['note', 'Fields marked with an asterisk (*) are required when adding or editing a user.'],
   ],
   faqs: [
     ['What is the difference between Team User and Other User?', 'A Team User is a member of a team in Team Management. An Other User needs access to CMS but is not a member of a team.'],
     ['I cannot see User Management in the side menu. Why?', 'Only people with access to User Management see it. Ask a CMS admin to add the user for you.'],
     ['I made a mistake on an earlier step. Do I have to start again?', 'No. Click Back to return to any earlier step, correct it, then click Next again. Nothing is saved until you click Add User on the Review step.'],
     ['Which Verticals can I choose?', 'System Engineering, Service Experience, Infra and Technology Solutions. Team Function, Domain and Sub Domain then narrow it down to the person’s team.'],
+    ['How do I see what a user is allowed to do?', 'Click the eye icon and open the Permissions tab, or choose Permissions from the ⋮ menu. It lists every permission the user’s role grants, for example All CRQs · View or Dashboard · Create.'],
+    ['Can I change a user’s OLM ID or team?', 'No. The OLM ID and organisation hierarchy are locked when you edit a user. Every other detail can be changed.'],
+    ['A user forgot their password. What do I do?', 'Open the ⋮ menu on their row and choose Reset Password.'],
   ],
   subTasks: [
     {
@@ -166,6 +180,85 @@ ${callout('info', 'Use <strong>Back</strong> at any step to change something you
         },
       ],
       related: ['sign-in-to-chm', 'add-a-team-member'],
+    },
+    {
+      title: 'View a user’s details',
+      slug: 'view-a-user',
+      summary: 'Click the eye icon to open the user’s details: Overview, Permissions and Sessions.',
+      prerequisites: [SIGNED_IN, 'Access to User Management'],
+      expectedOutcome: 'You can see the user’s details and the permissions their role gives them.',
+      steps: [
+        {
+          title: 'Find the user',
+          html: '<p>In <strong>User Management</strong>, find the user in the <strong>User Directory</strong>. Search by name, OLM ID or email, or narrow the list with the role filter and <strong>Filters</strong>.</p>',
+          shots: [um('directory-more-menu', 'User Directory with totals, search, role filter, sort and the list of users with their actions')],
+        },
+        {
+          title: 'Click the eye icon',
+          html: '<p>In the <strong>Actions</strong> column, click the <strong>eye</strong> icon. A panel opens on the right with the user’s name, role and status.</p><p>The <strong>Overview</strong> tab shows the OLM ID, email, phone, organisation, department, employment type and joining date.</p>',
+          shots: [um('user-overview', 'User details panel, Overview tab, with OLM ID, email, phone, organisation, department, employment type and joining date')],
+        },
+        {
+          title: 'Check permissions and sessions',
+          html: '<p>Open the <strong>Permissions</strong> tab to see every permission the user’s role grants, such as All CRQs · View or Dashboard · Create. The number next to the tab name is the total. Open <strong>Sessions</strong> to see the user’s sessions.</p>',
+          shots: [um('user-permissions', 'User details panel, Permissions tab, listing the permissions granted to the Team Member role')],
+          callout: { type: 'tip', text: 'Click the pencil at the top of the panel to edit the user from here.' },
+        },
+      ],
+      related: ['edit-a-user', 'user-more-actions'],
+    },
+    {
+      title: 'Edit a user’s details',
+      slug: 'edit-a-user',
+      summary: 'Click the pencil icon to change a user’s details. The OLM ID and organisation hierarchy are locked.',
+      prerequisites: [SIGNED_IN, 'Access to User Management'],
+      expectedOutcome: 'The user’s details are updated in the User Directory.',
+      steps: [
+        {
+          title: 'Click the pencil icon',
+          html: '<p>Find the user in the <strong>User Directory</strong> and click the <strong>pencil</strong> icon in the <strong>Actions</strong> column, or the pencil at the top of the user’s details panel. The <strong>Edit Team Member</strong> window opens.</p>',
+        },
+        {
+          title: 'Change the details',
+          html: '<p>Update what needs changing:</p><ul><li><strong>Basic information</strong>: employee name, email, mobile number and gender.</li><li><strong>Employment details</strong>: employment type, vendor company, designation, job level and the other employment fields.</li></ul><p>The <strong>OLM ID</strong> shows as <strong>Locked</strong>, and the organisation hierarchy cannot be changed.</p>',
+          shots: [um('edit-user', 'Edit Team Member window with the banner saying OLM ID and organisation hierarchy are locked, and the Basic Information and Employment Details sections')],
+          callout: { type: 'warning', text: 'Fields marked with an asterisk (*) are required. Save Changes stays unavailable until they are filled in.' },
+        },
+        {
+          title: 'Save the changes',
+          html: '<p>Click <strong>Save Changes</strong>. To leave without changing anything, click <strong>Cancel</strong>.</p>',
+        },
+      ],
+      related: ['view-a-user', 'edit-a-team-member'],
+    },
+    {
+      title: 'Permissions, reset password and remove a user',
+      slug: 'user-more-actions',
+      summary: 'Use the ⋮ menu on a user’s row to see their permissions, reset their password or remove them from CMS.',
+      prerequisites: [SIGNED_IN, 'Access to User Management'],
+      expectedOutcome: 'The user’s permissions are checked, their password is reset, or they are removed from CMS.',
+      steps: [
+        {
+          title: 'Open the ⋮ menu',
+          html: '<p>Find the user in the <strong>User Directory</strong> and click <strong>⋮</strong> (more options) at the end of their row. The menu has <strong>Permissions</strong>, <strong>Reset Password</strong> and <strong>Remove User</strong>.</p>',
+          shots: [um('directory-more-menu', 'More-options menu open on a user’s row with Permissions, Reset Password and Remove User')],
+        },
+        {
+          title: 'Check permissions',
+          html: '<p>Choose <strong>Permissions</strong> to see every permission the user’s role grants.</p>',
+          shots: [um('user-permissions', 'Granted permissions for the Team Member role')],
+        },
+        {
+          title: 'Reset the password',
+          html: '<p>Choose <strong>Reset Password</strong> when the user has forgotten their password or cannot sign in.</p>',
+        },
+        {
+          title: 'Remove the user',
+          html: '<p>Choose <strong>Remove User</strong> to take the person off CMS. Confirm if CHM asks.</p>',
+          callout: { type: 'warning', text: 'Remove a user only when they should no longer have access to CMS. To change their details, edit them instead.' },
+        },
+      ],
+      related: ['view-a-user', 'remove-a-team-member'],
     },
   ],
 };
