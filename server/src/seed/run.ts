@@ -6,7 +6,7 @@ import { AuditLog, Media, Migration, Module, SubTask, User, Version, type UserDo
 import { moduleSearchText, moduleToSnapshot, subTaskSearchText, subTaskToSnapshot, type ModuleSnapshot, type SubTaskSnapshot } from '../services/content.js';
 import { saveVersion } from '../services/versioning.js';
 import { configurationModules, reschedulingModule, teamReportsModule, userManagementModule } from './configuration.js';
-import { RESCHEDULE_NOTES } from './rescheduling-notes.js';
+import { OLD_RESCHEDULE_NOTES, RESCHEDULE_NOTES } from './rescheduling-notes.js';
 import { modules as lifecycleModules, type SeedModule, type Shot } from './content.js';
 import { impactAnalysisModule } from './impact-analysis.js';
 import { OLD_SIGNED_IN, planInventoryModule } from './plan-inventory.js';
@@ -315,6 +315,43 @@ const MIGRATIONS: { name: string; run: (admin: UserDoc) => Promise<void> }[] = [
       const target = ia && (await SubTask.findOne({ moduleId: ia._id, slug: 'review-impact-analysis-data' }).select('_id').lean());
       if (target && pi) {
         await SubTask.updateOne({ moduleId: pi._id, slug: 'review-plan-inventory-and-submit' }, { $addToSet: { relatedSubTaskIds: target._id } });
+      }
+    },
+  },
+  {
+    // Finalized rescheduling rules: one reschedule per CRQ, no rescheduling by the stage teams (they
+    // mark the stage Fail), MOP Validation re-triggered after long delays, plus test cases.
+    name: '2026-11-rescheduling-final',
+    run: async (admin) => {
+      if (await Module.exists({ slug: reschedulingModule.slug })) {
+        await seedModules([reschedulingModule], admin, { replaceExisting: true, changeNote: 'Updated to the finalized rescheduling scenarios' });
+      }
+      const slugs = new Set([...Object.keys(OLD_RESCHEDULE_NOTES), ...Object.keys(RESCHEDULE_NOTES)]);
+      for (const slug of slugs) {
+        const doc = await Module.findOne({ slug });
+        if (!doc) continue;
+        const old = OLD_RESCHEDULE_NOTES[slug];
+        const note = RESCHEDULE_NOTES[slug];
+        let changed = false;
+        if (old) {
+          // Remove only the exact text added by the earlier migration; admin edits are left alone.
+          const g = doc.guidelines.filter((x) => x.text !== old.guideline[1]);
+          const f = doc.faqs.filter((x) => !(x.q === old.faq[0] && x.a === old.faq[1]));
+          if (g.length !== doc.guidelines.length || f.length !== doc.faqs.length) {
+            doc.set({ guidelines: g, faqs: f });
+            changed = true;
+          }
+        }
+        if (note && !doc.guidelines.some((x) => x.text === note.guideline[1])) {
+          doc.guidelines.push({ type: note.guideline[0], text: note.guideline[1] });
+          doc.faqs.push({ q: note.faq[0], a: note.faq[1] });
+          changed = true;
+        }
+        if (!changed) continue;
+        const snap = moduleToSnapshot(doc.toObject());
+        doc.set({ searchText: moduleSearchText(snap), updatedBy: admin._id });
+        await doc.save();
+        await saveVersion({ entityType: 'module', entityId: doc._id, snapshot: snap, user: { id: String(admin._id), name: admin.name, email: admin.email, role: 'admin' }, changeNote: 'Updated rescheduling note' });
       }
     },
   },

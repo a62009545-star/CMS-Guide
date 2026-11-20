@@ -1,8 +1,49 @@
 /**
- * The CRQ lifecycle stages where rescheduling is allowed, and the note each one carries pointing to
- * the CRQ Rescheduling topic. Used by the seed and by the migration for existing databases.
+ * What each CRQ lifecycle stage says about rescheduling, pointing to the CRQ Rescheduling topic.
+ * Follows the finalized "CRQ Rescheduling Scenarios" document. Used by the seed and by migrations.
  */
-export const RESCHEDULE_NOTES: Record<string, { guideline: ['must' | 'should' | 'note', string]; faq: [string, string] }> = {
+type Note = { guideline: ['must' | 'should' | 'note', string]; faq: [string, string] };
+
+const NO_RESCHEDULE: Note = {
+  guideline: [
+    'must',
+    'Rescheduling is not allowed for the team working on this stage. To reject the CRQ, mark the stage Fail; the requestor team updates it and responds within the agreed SLA. See CRQ Rescheduling in the CMS lifecycle.',
+  ],
+  faq: [
+    'Can we reschedule the CRQ at this stage?',
+    'No. Teams working on Plan & Inventory Validation, Impact Analysis, MOP Creation and MOP Validation cannot reschedule. Mark the stage Fail to reject the CRQ; the requestor team is informed and responds within the agreed SLA. Only the NOC SE team, or impacted parties during approval, can reschedule.',
+  ],
+};
+
+export const RESCHEDULE_NOTES: Record<string, Note> = {
+  'plan-inventory-validation': NO_RESCHEDULE,
+  'impact-analysis': NO_RESCHEDULE,
+  'mop-creation': NO_RESCHEDULE,
+  'mop-validation': NO_RESCHEDULE,
+  'impacted-party-approval': {
+    guideline: [
+      'must',
+      'Impacted parties can reschedule instead of approving or rejecting, but only within their active action window and only to a later date. A CRQ can be rescheduled only once, and rescheduling after approval makes re-approval mandatory. See CRQ Rescheduling in the CMS lifecycle.',
+    ],
+    faq: [
+      'Can an impacted party reschedule the CRQ?',
+      'Yes, within their active approval/rejection window, and only to postpone; preponing is blocked. Only one rescheduling attempt is allowed in the whole CRQ journey. The full rules are in CRQ Rescheduling, in the CMS lifecycle.',
+    ],
+  },
+  'network-execution': {
+    guideline: [
+      'note',
+      'If execution has started but no task is completed, engineers or TLs can postpone by up to 48 hours; longer needs Domain Head and Function Head approval and re-triggers MOP Validation. A partially completed CRQ needs a new activity window within 48 hours. See CRQ Rescheduling in the CMS lifecycle.',
+    ],
+    faq: [
+      'Can we reschedule after execution has started?',
+      'Yes. With no task completed, engineers or TLs can postpone by up to 48 hours; beyond that needs Domain Head and Function Head approval, then MOP Validation runs again. If some tasks are completed, select a new activity window within 48 hours; completed and pending tasks stay visible.',
+    ],
+  },
+};
+
+/** Notes added by the first rescheduling migration (from the earlier deck), now replaced. */
+export const OLD_RESCHEDULE_NOTES: Record<string, Note> = {
   'mop-creation': {
     guideline: [
       'note',

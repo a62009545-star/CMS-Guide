@@ -453,151 +453,213 @@ ${facts([
 };
 
 /**
- * CRQ Rescheduling, written from the "CRQ Rescheduling Scenarios & Logics" deck (CHM: CAB & Approvals).
- * Rescheduling is allowed during MOP creation and validation, and during impacted party approval.
+ * CRQ Rescheduling, written from the finalized "CRQ Rescheduling Scenarios" document (CHM: CAB &
+ * Approvals). It supersedes the earlier deck: one reschedule per CRQ, no rescheduling by the stage
+ * teams (they mark the stage Fail instead), and MOP Validation re-triggered after long delays.
  */
 const rs = (name: string, alt: string) => shot('rescheduling', name, alt);
+
+/** Test cases for every rescheduling rule, shown as a table on the topic page. */
+const RESCHEDULE_TEST_CASES: [string, string, string][] = [
+  ['TC‑01', 'A Plan & Inventory, Impact Analysis, MOP Creation or MOP Validation team tries to reschedule the CRQ.', 'Not allowed. The team rejects by marking the stage Fail; the requestor team updates the CRQ and responds within the agreed SLA.'],
+  ['TC‑02', 'An impacted party postpones the CRQ within its active action window.', 'Allowed. The availability calendar shows the execution engineer’s free dates; owner and reason must be entered.'],
+  ['TC‑03', 'An impacted party tries to prepone the CRQ.', 'Blocked. Approval parties can only postpone.'],
+  ['TC‑04', 'An impacted party tries to reschedule after its action window has closed.', 'Not allowed. Rescheduling is only possible within the active approval/rejection window.'],
+  ['TC‑05', 'The NOC SE team postpones the CRQ before the MOP is created.', 'Allowed directly.'],
+  ['TC‑06', 'The NOC SE team postpones the CRQ by up to 48 hours after MOP creation.', 'Allowed. MOP Validation is not re-triggered.'],
+  ['TC‑07', 'The NOC SE team postpones the CRQ by more than 48 hours after MOP creation.', 'Allowed. The MOP Validation stage is re-triggered.'],
+  ['TC‑08', 'The NOC SE team prepones; more than 4 days between MOP creation date and execution date.', 'Allowed.'],
+  ['TC‑09', 'The NOC SE team prepones inside the 4-day margin.', 'A confirmation pop-up says the execution is being scheduled before the defined 4-day timeline. The prepone goes ahead only after explicit confirmation.'],
+  ['TC‑10', 'The CRQ is rescheduled after the impacted parties have approved it.', 'Re-approval by the impacted parties is mandatory.'],
+  ['TC‑11', 'Someone tries to reschedule a CRQ that has already been rescheduled once.', 'Not allowed. Only one rescheduling attempt is allowed in the complete CRQ journey.'],
+  ['TC‑12', 'Any rescheduling attempt is saved without an owner or a reason.', 'Not allowed. Owner and reason are mandatory for every attempt.'],
+  ['TC‑13', 'Execution has started, no task is completed; an engineer or TL postpones by up to 48 hours.', 'Allowed.'],
+  ['TC‑14', 'Execution has started, no task is completed; postponement of more than 48 hours.', 'Needs approval from the Domain Head and the Function Head. After approval, MOP Validation is re-triggered.'],
+  ['TC‑15', 'Partially completed CRQ: a new activity window is selected within 48 hours.', 'Allowed. The scheduled activity date and time update to the newly selected slot.'],
+  ['TC‑16', 'Partially completed CRQ: a new activity window more than 48 hours away is selected.', 'Not allowed. The new window must be within 48 hours.'],
+  ['TC‑17', 'Partially completed CRQ is rescheduled, then the task status is updated.', 'Completed and pending task details stay visible while the task status is updated.'],
+  ['TC‑18', 'Partially completed CRQ is rescheduled without an owner or a reason.', 'Not allowed. Owner and reason are mandatory.'],
+];
+const testCaseTable = `<table><thead><tr><th>ID</th><th>Scenario</th><th>Expected result</th></tr></thead><tbody>${RESCHEDULE_TEST_CASES.map(
+  ([id, sc, ex]) => `<tr><td>${id}</td><td>${sc}</td><td>${ex}</td></tr>`,
+).join('')}</tbody></table>`;
+
 export const reschedulingModule: SeedModule = {
   title: 'CRQ Rescheduling',
   slug: 'crq-rescheduling',
   section: 'configuration',
   icon: 'calendar-clock',
-  summary: 'When and how a CRQ can be postponed or preponed: during MOP creation and validation, and during impacted party approval.',
-  hero: rs('ground-rules', 'Ground rules for rescheduling: availability calendar, owner and reason, re-approval trigger, and a maximum of two reschedules'),
+  summary: 'Who can reschedule a CRQ, when, and how far: impacted parties during approval, the NOC SE team until execution, and delays during execution. One reschedule per CRQ.',
+  hero: null,
   e2e: `
-<p>A CRQ’s execution date can be moved to a later date (<strong>postpone</strong>) or an earlier date (<strong>prepone</strong>). Rescheduling is allowed at two points in the CRQ lifecycle:</p>
-<ul>
-<li><strong>MOP Creation and MOP Validation</strong>: the NOC can postpone, and in some cases prepone, the activity.</li>
-<li><strong>Impacted Party Approval</strong>: each impacted party can approve, reschedule or reject within its action window. Impacted parties can only postpone.</li>
-</ul>
-<h3>Ground rules for every reschedule</h3>
+<p>A CRQ can be <strong>postponed</strong> (moved later) or, in some cases, <strong>preponed</strong> (moved earlier). Who can do it depends on where the CRQ is in its journey.</p>
+<h3>Rules for every reschedule</h3>
 ${facts([
-  ['1. Availability calendar', 'CHM checks that the execution engineer is available and shows a calendar of available dates. The days-margin criteria are not applied to this calendar.'],
-  ['2. Owner and reason', 'Every reschedule must record who is rescheduling (the owner) and why (the reason).'],
-  ['3. Re-approval', 'If impacted parties have already approved, rescheduling makes their re-approval mandatory.'],
-  ['4. Two at most', 'A CRQ can be rescheduled twice at most, and only once by impacted parties.'],
+  ['One attempt only', 'Only one rescheduling attempt is allowed in the complete CRQ journey.'],
+  ['Availability calendar', 'CHM checks the execution engineer’s availability and shows a calendar of available dates. The days-margin criteria are not applied to this calendar.'],
+  ['Owner and reason', 'Both are mandatory for every rescheduling attempt.'],
+  ['Re-approval', 'If the CRQ is rescheduled after impacted party approval, re-approval is mandatory.'],
 ])}
-<h3>MOP creation and validation (NOC)</h3>
+<h3>Who can reschedule, and when</h3>
 ${facts([
-  ['Before MOP creation starts', 'Postpone at any time. Prepone is not allowed.'],
-  ['After the MOP is created: up to 24 hours', 'Postponing by up to 24 hours does not re-trigger MOP validation.'],
-  ['After the MOP is created: beyond 48 hours', 'Postponing by more than 48 hours re-triggers MOP creation and validation.'],
-  ['Prepone', 'Allowed only when there are more than 4 days between the MOP creation date and the execution date. Inside that 4-day margin, CHM shows a warning pop-up that you must explicitly confirm.'],
+  ['Plan &amp; Inventory Validation, Impact Analysis, MOP Creation, MOP Validation', '<strong>The teams working on these stages cannot reschedule.</strong> To reject the CRQ they mark the stage <strong>Fail</strong>; the requestor team is informed, makes the updates and responds within the agreed SLA.'],
+  ['Impacted Party Approval', 'Impacted parties can reschedule, within their active approval/rejection window, and only to a later date.'],
+  ['Any other time until execution', 'Only the <strong>NOC SE team</strong> can reschedule.'],
+  ['During or after execution', 'Engineers and team leads, within the limits below.'],
 ])}
-<h3>Impacted party approval</h3>
+<h3>NOC SE team: before execution</h3>
 ${facts([
-  ['Actions', 'Approve, Reschedule or Reject, within the party’s active action window'],
-  ['Reschedule', 'Allowed only inside the active action window'],
-  ['Direction', 'Postpone only. Preponing is blocked for all approval parties.'],
+  ['Postpone before MOP creation', 'Allowed directly.'],
+  ['Postpone after MOP creation', 'Up to 48 hours: allowed. More than 48 hours: the MOP Validation stage is re-triggered.'],
+  ['Prepone', 'Allowed only when there are more than 4 days between the MOP creation date and the execution date. Inside that 4-day margin, a confirmation pop-up says the execution is being scheduled before the defined 4-day timeline.'],
 ])}
-<h3>If execution is delayed</h3>
+<h3>During or after execution</h3>
 ${facts([
-  ['Not started (zero completion), up to 48 hours', 'Engineers or team leads can postpone by up to 48 hours without penalty.'],
-  ['Not started, beyond 48 hours', 'Needs explicit authorisation from the Domain Head and Function Head, and re-triggers MOP creation and validation.'],
-  ['Partially completed', 'Select a new activity window within 48 hours. The scheduled date and time move to the new slot, and completed and pending tasks stay visible while you update the CRQ’s task status.'],
+  ['Zero completion (started, no task completed)', 'Engineers or TLs can postpone by up to 48 hours. Longer needs approval from the Domain Head and Function Head, after which MOP Validation is re-triggered.'],
+  ['Partial completion (some tasks completed)', 'Select a new activity window within 48 hours. The scheduled date and time update to the new slot, and completed and pending tasks stay visible while you update the CRQ’s task status.'],
 ])}
+<h3>Test cases</h3>
+<p>Use these to check that CHM behaves as the rules describe.</p>
+${testCaseTable}
 `,
   flow: [
-    ['Check the stage', 'MOP creation/validation or impacted party approval'],
-    ['Check the limits', 'Postpone or prepone, hours and days margin'],
-    ['Pick a date', 'From the availability calendar'],
-    ['Owner and reason', 'Both are mandatory'],
-    ['Re-approval', 'If impacted parties had already approved'],
+    ['Who is asking?', 'Impacted party, NOC SE team or execution team'],
+    ['Check the stage', 'Approval, before execution, or during execution'],
+    ['Check the limits', 'Postpone or prepone, 48 hours, 4-day margin'],
+    ['Pick a date', 'Availability calendar'],
+    ['Owner and reason', 'Both mandatory'],
+    ['Re-approval', 'If impacted parties had approved'],
   ],
   guidelines: [
-    ['must', 'Record the rescheduling owner and the reason for every reschedule.'],
-    ['must', 'A CRQ can be rescheduled at most twice, and only once by impacted parties.'],
-    ['must', 'If impacted parties have already approved, rescheduling makes their re-approval mandatory.'],
-    ['must', 'Impacted parties can only postpone, and only within their active action window. Preponing is blocked for all approval parties.'],
-    ['must', 'Prepone only when there are more than 4 days between the MOP creation date and the execution date.'],
-    ['should', 'Keep a postponement after MOP creation within 24 hours where you can, so MOP validation does not have to run again.'],
-    ['note', 'Postponing by more than 48 hours after the MOP is created re-triggers MOP creation and validation.'],
-    ['note', 'The availability calendar shows dates when the execution engineer is free; the days-margin criteria are not applied to it.'],
+    ['must', 'Only one rescheduling attempt is allowed in the complete CRQ journey.'],
+    ['must', 'Record the rescheduling owner and the reason for every rescheduling attempt.'],
+    ['must', 'Teams working on Plan & Inventory Validation, Impact Analysis, MOP Creation and MOP Validation cannot reschedule. They reject the CRQ by marking the stage Fail.'],
+    ['must', 'Impacted parties can only postpone, and only within their active approval/rejection window.'],
+    ['must', 'Outside the approval phase, only the NOC SE team can reschedule a CRQ before execution.'],
+    ['must', 'If the CRQ is rescheduled after impacted party approval, re-approval is mandatory.'],
+    ['must', 'For a partially completed CRQ, select the new activity window within 48 hours.'],
+    ['should', 'Avoid postponing by more than 48 hours after MOP creation where you can; it re-triggers MOP Validation.'],
+    ['note', 'Preponing inside the 4-day margin shows a confirmation pop-up. Prepone only when you are sure.'],
   ],
   faqs: [
-    ['When can a CRQ be rescheduled?', 'During MOP creation and MOP validation, and during impacted party approval.'],
-    ['How many times can a CRQ be rescheduled?', 'Twice at most. Impacted parties can use only one of those reschedules.'],
-    ['Can an impacted party bring the activity forward?', 'No. Impacted parties can only postpone, and only within their active action window. Preponing is blocked for all approval parties.'],
-    ['Will postponing make the MOP go through validation again?', 'Not if you postpone by up to 24 hours after the MOP is created. Postponing by more than 48 hours re-triggers MOP creation and validation.'],
-    ['Why do I see a warning when I prepone?', 'The new date is inside the 4-day margin after the MOP creation date. Preponing is only allowed when there are more than 4 days between MOP creation and execution, so CHM asks you to confirm explicitly.'],
-    ['Do impacted parties need to approve again after a reschedule?', 'Yes, if they had already approved. Rescheduling makes re-approval mandatory.'],
+    ['Can the team working on MOP Creation or MOP Validation reschedule the CRQ?', 'No. Rescheduling is not allowed for the teams working on Plan & Inventory Validation, Impact Analysis, MOP Creation and MOP Validation. They mark the stage Fail to reject the CRQ, and the requestor team updates it within the agreed SLA.'],
+    ['How many times can a CRQ be rescheduled?', 'Once. Only one rescheduling attempt is allowed in the complete CRQ journey.'],
+    ['Who can reschedule a CRQ?', 'Impacted parties, during approval and within their action window. Otherwise, until execution, only the NOC SE team. During execution, engineers and TLs within the 48-hour limits.'],
+    ['Can an impacted party bring the activity forward?', 'No. Approval parties can only postpone.'],
+    ['When does MOP Validation run again?', 'When the CRQ is postponed by more than 48 hours after MOP creation, and when a zero-completion CRQ is extended beyond 48 hours with Domain Head and Function Head approval.'],
+    ['Why do I see a confirmation pop-up when I prepone?', 'The new date is inside the 4-day margin between MOP creation and execution. Preponing is allowed beyond that margin; inside it, CHM asks you to confirm that the execution is being scheduled early.'],
+    ['Can a partially completed CRQ be rescheduled?', 'Yes. Select a new activity window within 48 hours. The scheduled date and time move to the new slot, and completed and pending tasks stay visible.'],
   ],
   subTasks: [
     {
-      title: 'Reschedule during MOP creation or validation',
-      slug: 'reschedule-during-mop',
-      summary: 'Postpone or prepone a CRQ while the MOP is being created or validated, within the NOC limits.',
-      prerequisites: [SIGNED_IN, 'The CRQ is in MOP Creation or MOP Validation', 'The CRQ has been rescheduled fewer than two times'],
-      expectedOutcome: 'The CRQ has a new execution date, with the owner and reason recorded, and any re-approval or MOP re-validation it needs is triggered.',
+      title: 'Reject a CRQ during planning or MOP stages',
+      slug: 'reject-instead-of-reschedule',
+      summary: 'Teams working on Plan & Inventory, Impact Analysis, MOP Creation or MOP Validation cannot reschedule. They mark the stage Fail instead.',
+      prerequisites: [SIGNED_IN, 'You work on Plan & Inventory Validation, Impact Analysis, MOP Creation or MOP Validation for the CRQ'],
+      expectedOutcome: 'The stage is marked Fail and the requestor team is asked to update the CRQ within the agreed SLA.',
       steps: [
         {
-          title: 'Decide whether to postpone or prepone',
-          html: '<p>Check where the CRQ is:</p><ul><li><strong>MOP creation has not started</strong>: you can postpone at any time. You cannot prepone.</li><li><strong>MOP already created</strong>: you can postpone, or prepone if the dates allow it (see step 3).</li></ul>',
-          shots: [rs('noc-postponement', 'NOC postponement logic: no prepone before MOP creation; postpone within 24 hours without re-validation; beyond 48 hours re-triggers MOP creation and validation')],
+          title: 'Mark the stage Fail',
+          html: '<p>If the CRQ cannot go ahead as planned, reject it by marking your stage <strong>Fail</strong>. Rescheduling is not available to your team at this stage.</p>',
+          callout: { type: 'warning', text: 'Do not try to reschedule from these stages. Only the NOC SE team (or impacted parties during approval) can reschedule.' },
         },
         {
-          title: 'If you postpone, check how far',
-          html: '<ul><li><strong>Up to 24 hours</strong>: MOP validation is not triggered again.</li><li><strong>More than 48 hours</strong>: MOP creation and validation are triggered again.</li></ul>',
-          callout: { type: 'tip', text: 'Keep the postponement within 24 hours where you can, so the MOP does not have to be validated again.' },
-        },
-        {
-          title: 'If you prepone, check the 4-day margin',
-          html: '<p>Preponing is allowed only when there are <strong>more than 4 days</strong> between the MOP creation date and the execution date. If the new date falls inside the 4-day margin, CHM shows a warning pop-up that you must explicitly confirm.</p>',
-          shots: [rs('noc-preponement', 'NOC preponement logic: prepone is valid only when more than 4 days separate MOP creation and execution; inside the margin a warning pop-up appears')],
-        },
-        {
-          title: 'Pick the new date, owner and reason',
-          html: '<p>Choose the new date from the <strong>availability calendar</strong>, which shows when the execution engineer is free. Enter the <strong>rescheduling owner</strong> and the <strong>reason</strong>; both are mandatory. Save the reschedule.</p>',
-          shots: [rs('ground-rules', 'Ground rules: availability calendar, owner and reason, re-approval trigger and a maximum of two reschedules per CRQ')],
-          callout: { type: 'warning', text: 'If impacted parties have already approved the CRQ, they must approve it again after the reschedule.' },
+          title: 'Inform the requestor team',
+          html: '<p>Tell the requestor team what needs to change. They make the updates and respond back within the <strong>agreed SLA</strong>.</p>',
         },
       ],
-      related: ['reschedule-during-approval'],
+      related: ['review-plan-inventory-and-submit', 'reschedule-by-noc'],
     },
     {
       title: 'Reschedule during impacted party approval',
       slug: 'reschedule-during-approval',
       summary: 'As an impacted party, postpone a CRQ instead of approving or rejecting it, within your action window.',
-      prerequisites: [SIGNED_IN, 'You are an impacted party for the CRQ, and your action window is open', 'The CRQ has not already been rescheduled by an impacted party'],
+      prerequisites: [SIGNED_IN, 'You are an impacted party for the CRQ and your action window is open', 'The CRQ has not been rescheduled before'],
       expectedOutcome: 'The CRQ is postponed, with the owner and reason recorded.',
       steps: [
         {
           title: 'Choose Reschedule in your action window',
-          html: '<p>While your action window is open, you can <strong>Approve</strong>, <strong>Reschedule</strong> or <strong>Reject</strong> the CRQ. Choose <strong>Reschedule</strong> when the change can go ahead, but on a later date.</p>',
+          html: '<p>While your action window is open you can <strong>Approve</strong>, <strong>Reschedule</strong> or <strong>Reject</strong>. Choose <strong>Reschedule</strong> when the change can go ahead, but later.</p>',
           shots: [rs('impacted-parties-protocol', 'Impacted parties protocol: Approve, Reschedule and Reject within the action window')],
-          callout: { type: 'error', text: 'Rescheduling is only possible inside your active action window. Once it has passed, you cannot reschedule the CRQ.' },
+          callout: { type: 'error', text: 'Rescheduling is only possible inside your active approval/rejection window. Once it has closed, you cannot reschedule.' },
         },
         {
           title: 'Pick a later date',
-          html: '<p>Choose a new date from the <strong>availability calendar</strong>. Impacted parties can only <strong>postpone</strong>: earlier dates are blocked.</p>',
+          html: '<p>Choose a new date from the <strong>availability calendar</strong>, which shows when the execution engineer is free. You can only <strong>postpone</strong>; earlier dates are blocked.</p>',
         },
         {
           title: 'Enter the owner and reason, and save',
-          html: '<p>Enter the <strong>rescheduling owner</strong> and the <strong>reason</strong>; both are mandatory. Save the reschedule.</p>',
-          callout: { type: 'warning', text: 'Impacted parties can reschedule a CRQ only once, and a CRQ can be rescheduled at most twice in total.' },
+          html: '<p>Enter the <strong>rescheduling owner</strong> and the <strong>reason</strong>; both are mandatory. Save.</p>',
+          callout: { type: 'warning', text: 'This uses the CRQ’s only rescheduling attempt. If other parties had already approved, they must approve again.' },
         },
       ],
-      related: ['reschedule-during-mop', 'approve-or-reject'],
+      related: ['reschedule-by-noc', 'approve-or-reject'],
     },
     {
-      title: 'Handle a delay during execution',
-      slug: 'reschedule-during-execution',
-      summary: 'What to do when execution is delayed, whether it has not started or is partially complete.',
-      prerequisites: [SIGNED_IN, 'The CRQ is in Network Execution'],
-      expectedOutcome: 'The CRQ has a new activity window, with any authorisation or MOP re-validation it needs.',
+      title: 'Reschedule as the NOC SE team',
+      slug: 'reschedule-by-noc',
+      summary: 'Postpone or prepone a CRQ before execution, within the MOP creation and 4-day margin rules.',
+      prerequisites: [SIGNED_IN, 'You are in the NOC SE team', 'The CRQ has not been rescheduled before'],
+      expectedOutcome: 'The CRQ has a new execution date, with the owner and reason recorded, and MOP Validation or re-approval is triggered where the rules require it.',
       steps: [
         {
-          title: 'If execution has not started',
-          html: '<ul><li><strong>Up to 48 hours</strong>: engineers or team leads can postpone without penalty.</li><li><strong>More than 48 hours</strong>: get explicit authorisation from the <strong>Domain Head</strong> and the <strong>Function Head</strong>. MOP creation and validation are triggered again.</li></ul>',
-          shots: [rs('execution-postponement', 'Postponement during execution: up to 48 hours by engineers or team leads; beyond 48 hours needs Domain Head and Function Head approval')],
+          title: 'If you postpone, check the MOP',
+          html: '<ul><li><strong>MOP not created yet</strong>: postpone directly.</li><li><strong>MOP created, postponing by up to 48 hours</strong>: allowed.</li><li><strong>MOP created, postponing by more than 48 hours</strong>: allowed, and the <strong>MOP Validation</strong> stage is re-triggered.</li></ul>',
         },
         {
-          title: 'If execution is partially complete',
-          html: '<p>Select a <strong>new activity window within 48 hours</strong>. The scheduled date and time move to the new slot. Completed and pending tasks stay visible while you update the CRQ’s task status.</p>',
-          shots: [rs('partial-completion', 'Partial completion rescheduling: choose a new activity window within 48 hours')],
+          title: 'If you prepone, check the 4-day margin',
+          html: '<p>Prepone only when there are <strong>more than 4 days</strong> between the MOP creation date and the execution date. Inside that margin, a confirmation pop-up says the execution is being scheduled before the defined 4-day timeline; confirm only if you are sure.</p>',
+          shots: [rs('noc-preponement', 'Prepone logic: valid only when more than 4 days separate MOP creation and execution; inside the margin a confirmation pop-up appears')],
+        },
+        {
+          title: 'Pick the date, owner and reason',
+          html: '<p>Choose the new date from the <strong>availability calendar</strong>. Enter the <strong>rescheduling owner</strong> and the <strong>reason</strong>; both are mandatory. Save.</p>',
+          callout: { type: 'warning', text: 'Only one rescheduling attempt is allowed per CRQ. If impacted parties had already approved, re-approval is mandatory.' },
         },
       ],
-      related: ['reschedule-during-mop', 'record-step-results'],
+      related: ['reschedule-during-approval', 'reschedule-zero-completion'],
+    },
+    {
+      title: 'Postpone when execution has started (zero completion)',
+      slug: 'reschedule-zero-completion',
+      summary: 'Execution has started but no task is completed: postpone up to 48 hours, or longer with Domain Head and Function Head approval.',
+      prerequisites: [SIGNED_IN, 'Execution has started and no task is completed', 'You are the execution engineer or TL'],
+      expectedOutcome: 'The CRQ is postponed, with approval and MOP re-validation where needed.',
+      steps: [
+        {
+          title: 'Up to 48 hours: postpone',
+          html: '<p>Engineers or TLs can postpone the CRQ by <strong>up to 48 hours</strong>. Enter the owner and reason.</p>',
+        },
+        {
+          title: 'More than 48 hours: get approval',
+          html: '<p>An extension beyond 48 hours needs approval from the <strong>Domain Head</strong> and the <strong>Function Head</strong>. After approval, the <strong>MOP Validation</strong> stage is re-triggered.</p>',
+        },
+      ],
+      related: ['reschedule-partial-completion', 'record-step-results'],
+    },
+    {
+      title: 'Reschedule a partially completed CRQ',
+      slug: 'reschedule-partial-completion',
+      summary: 'Some tasks are completed: select a new activity window within 48 hours; completed and pending tasks stay visible.',
+      prerequisites: [SIGNED_IN, 'The CRQ is partially completed'],
+      expectedOutcome: 'The CRQ has a new activity window within 48 hours, and its completed and pending tasks are unchanged.',
+      steps: [
+        {
+          title: 'Select a new activity window within 48 hours',
+          html: '<p>Choose a new activity window <strong>within 48 hours</strong> from the availability calendar, and enter the owner and reason.</p>',
+          shots: [rs('partial-completion', 'Partial completion rescheduling: choose a new activity window within 48 hours')],
+          callout: { type: 'error', text: 'A window more than 48 hours away is not allowed for a partially completed CRQ.' },
+        },
+        {
+          title: 'Check the new schedule',
+          html: '<p>The scheduled activity date and time update to the newly selected slot.</p>',
+        },
+        {
+          title: 'Update the task status',
+          html: '<p>Update the CRQ’s task status. <strong>Completed</strong> and <strong>pending</strong> task details stay visible while you do, so nothing already done is lost.</p>',
+        },
+      ],
+      related: ['reschedule-zero-completion', 'submit-outcome'],
     },
   ],
 };
