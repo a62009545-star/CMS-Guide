@@ -147,7 +147,7 @@ ${callout('warning', 'Click Fetch Plan Data and then Sync Plan Data before Revie
           shots: [shot('crq-review', 'Select outcome with Pass, Failed and Cancelled, and the Submit Validation button')],
         },
       ],
-      related: ['start-plan-inventory-stage', 'trace-affected-services'],
+      related: ['start-plan-inventory-stage', 'review-impact-analysis-data'],
     },
   ],
 };

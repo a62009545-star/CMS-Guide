@@ -8,6 +8,7 @@ import { saveVersion } from '../services/versioning.js';
 import { configurationModules, reschedulingModule, teamReportsModule, userManagementModule } from './configuration.js';
 import { RESCHEDULE_NOTES } from './rescheduling-notes.js';
 import { modules as lifecycleModules, type SeedModule, type Shot } from './content.js';
+import { impactAnalysisModule } from './impact-analysis.js';
 import { OLD_SIGNED_IN, planInventoryModule } from './plan-inventory.js';
 
 /**
@@ -68,7 +69,9 @@ async function seedModules(
     const last = await Module.findOne({ section }).sort({ order: -1 }).select('order').lean();
     const order = existing?.order ?? (last?.order ?? 0) + 1;
     // Configuration topics without a screenshot get no hero; lifecycle placeholders get an illustration.
-    const hero = m.hero
+    const hero = m.hero === null
+      ? null
+      : m.hero
       ? await mediaFor(m.hero)
       : existing && opts.updateExisting
         ? ((existing.heroMedia as Types.ObjectId | null) ?? null)
@@ -298,6 +301,21 @@ const MIGRATIONS: { name: string; run: (admin: UserDoc) => Promise<void> }[] = [
       const at = slugs.indexOf('roster');
       slugs.splice(at >= 0 ? at + 1 : slugs.length, 0, teamReportsModule.slug);
       await Module.bulkWrite(slugs.map((slug, i) => ({ updateOne: { filter: { slug }, update: { $set: { order: i + 1 } } } })));
+    },
+  },
+  {
+    // Stage 2 rewritten from the team's Impact Analysis steps; images are added later in the editor.
+    name: '2026-11-impact-analysis-steps',
+    run: async (admin) => {
+      if (!(await Module.exists({ slug: impactAnalysisModule.slug }))) return; // deleted by an admin: leave it
+      await seedModules([impactAnalysisModule], admin, { replaceExisting: true, changeNote: 'Rewritten from the team’s Impact Analysis steps' });
+      // Stage 1's last walkthrough now points to the new Impact Analysis walkthrough.
+      const ia = await Module.findOne({ slug: impactAnalysisModule.slug }).select('_id').lean();
+      const pi = await Module.findOne({ slug: planInventoryModule.slug }).select('_id').lean();
+      const target = ia && (await SubTask.findOne({ moduleId: ia._id, slug: 'review-impact-analysis-data' }).select('_id').lean());
+      if (target && pi) {
+        await SubTask.updateOne({ moduleId: pi._id, slug: 'review-plan-inventory-and-submit' }, { $addToSet: { relatedSubTaskIds: target._id } });
+      }
     },
   },
 ];

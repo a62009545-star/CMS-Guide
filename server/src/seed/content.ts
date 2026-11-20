@@ -1,4 +1,5 @@
-/* Content for the seven CMS lifecycle modules. Stage 1 comes from the CRQ Workflow SOP; stages 2–7 are placeholders to replace with your real process. */
+/* Content for the seven CMS lifecycle modules. Stages 1 and 2 come from the team's CRQ Workflow steps; stages 3–7 are placeholders to replace with your real process. */
+import { impactAnalysisModule } from './impact-analysis.js';
 import { planInventoryModule } from './plan-inventory.js';
 import { RESCHEDULE_NOTES } from './rescheduling-notes.js';
 
@@ -33,7 +34,8 @@ export interface SeedModule {
   title: string;
   slug: string;
   section?: 'lifecycle' | 'configuration';
-  hero?: Shot;
+  /** A real screenshot; null means no hero image (one can be added later in the admin editor). */
+  hero?: Shot | null;
   icon: string;
   summary: string;
   e2e: string;
@@ -51,69 +53,8 @@ const callout = (type: 'tip' | 'warning' | 'info', html: string) => `<div data-c
 export const modules: SeedModule[] = [
   // Stage 1 is written from the CHM CRQ Workflow SOP (plan-inventory.ts).
   planInventoryModule,
-  {
-    title: 'Impact Analysis',
-    slug: 'impact-analysis',
-    icon: 'activity',
-    summary: 'Work out which services, customers and dependent elements the change could affect, and rate its risk.',
-    e2e: `
-<p>Impact Analysis turns a validated list of elements into a clear picture of who and what could be affected. The Planner traces downstream services from the inventory snapshot, estimates outage duration and assigns a risk rating that decides how much scrutiny the change gets in MOP Validation and approval.</p>
-<h3>At a glance</h3>
-${facts([
-  ['Inputs', 'Inventory-validated CR and its snapshot'],
-  ['Outputs', 'Impact report (services, customers, sites), risk rating, expected outage duration'],
-  ['Roles', 'Planner (prepares), Transport/Core/RAN SMEs (review), Service Assurance (customer impact)'],
-  ['SLA', '2 business days for Normal CRs; 2 hours for Emergency'],
-  ['Comes after / before', 'Plan &amp; Inventory Validation › MOP Creation'],
-])}
-<h3>Risk rating</h3>
-<ul><li><strong>Low</strong> — no customer-facing impact, full redundancy in place</li><li><strong>Medium</strong> — degraded service or redundancy lost during the window</li><li><strong>High</strong> — outage for enterprise customers or more than 10 sites</li><li><strong>Critical</strong> — core or national-level service at risk</li></ul>
-`,
-    flow: [
-      ['Trace dependencies', 'Walk downstream services from each element'],
-      ['Identify customers', 'List enterprise circuits and consumer sites affected'],
-      ['Estimate outage', 'Expected duration and whether redundancy holds'],
-      ['Rate risk', 'Low, Medium, High or Critical'],
-      ['SME review', 'Domain experts confirm the analysis'],
-    ],
-    guidelines: [
-      ['must', 'Every High or Critical rating must be reviewed by at least one domain SME.'],
-      ['must', 'List enterprise customers by their account ID so Impacted Party Approval can notify them.'],
-      ['should', 'Assume redundancy fails unless it was tested in the last 90 days.'],
-      ['note', 'The risk rating can only be lowered by an SME, never by the Planner who set it.'],
-    ],
-    faqs: [
-      ['Where does the dependency trace come from?', 'From the service topology linked to the inventory snapshot. If a service is missing, raise it with the Inventory SPOC — the trace is only as good as the topology.'],
-      ['Do I need to list consumer customers individually?', 'No. Consumer impact is reported as a count of sites and subscribers per circle.'],
-    ],
-    subTasks: [
-      {
-        title: 'Trace affected services',
-        slug: 'trace-affected-services',
-        summary: 'Generate and review the downstream service map for every element in scope.',
-        prerequisites: ['CR in Inventory Validated status'],
-        expectedOutcome: 'A reviewed list of affected services attached to the impact report.',
-        steps: [
-          { title: 'Generate the service map', html: '<p>On the CR, open <strong>Impact › Service map</strong> and select <strong>Generate</strong>.</p>', images: 1 },
-          { title: 'Review protected paths', html: '<p>Services with a protected path are shown with a dashed line. Confirm the protection path does not also pass through an element in scope.</p>', callout: { type: 'warning', text: 'A protection path that shares a fibre duct with the working path is not real redundancy.' } },
-          { title: 'Export to the impact report', html: '<p>Select <strong>Add to impact report</strong>. The services appear in the report with their customer counts.</p>' },
-        ],
-        related: ['assign-risk-rating'],
-      },
-      {
-        title: 'Assign the risk rating',
-        slug: 'assign-risk-rating',
-        summary: 'Rate the change and request SME review where needed.',
-        prerequisites: ['Service map added to the impact report'],
-        expectedOutcome: 'Risk rating set and, for High or Critical, SME review requested.',
-        steps: [
-          { title: 'Answer the risk questions', html: '<p>The Risk tab asks five questions about redundancy, customer type and rollback time. CMS proposes a rating from the answers.</p>', images: 1 },
-          { title: 'Confirm or raise the rating', html: '<p>You can raise the proposed rating but not lower it. Add a reason if you raise it.</p>' },
-          { title: 'Request SME review', html: '<p>For High or Critical, choose the domain (Transport, Core, RAN, IT) and select <strong>Request review</strong>.</p>', callout: { type: 'tip', text: 'Add the SME as a watcher so they see later changes to the MOP too.' } },
-        ],
-      },
-    ],
-  },
+  // Stage 2 is written from the team's Impact Analysis steps (impact-analysis.ts).
+  impactAnalysisModule,
   {
     title: 'MOP Creation',
     slug: 'mop-creation',
